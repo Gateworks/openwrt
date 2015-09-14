@@ -238,6 +238,19 @@ endef
 
 $(eval $(call KernelPackage,hwmon-w83627hf))
 
+define KernelPackage/hwmon-mfd-gsc
+  TITLE:=Gateworks MFD HWMON monitoring support
+  KCONFIG:=CONFIG_SENSORS_GSCHWMON
+  FILES:=$(LINUX_DIR)/drivers/hwmon/gsc-hwmon.ko
+  AUTOLOAD:=$(call AutoLoad,60,gsc-hwmon)
+  $(call AddDepends/hwmon,+kmod-gsc-core)
+endef
+
+define KernelPackage/hwmon-mfd-gsc/description
+  Kernel module for the Gateworks System Controller chips through MFD
+endef
+
+$(eval $(call KernelPackage,hwmon-mfd-gsc))
 
 define KernelPackage/hwmon-gsc
   TITLE:=Gateworks GSC monitoring support
