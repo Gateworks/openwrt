@@ -126,6 +126,23 @@ endef
 $(eval $(call KernelPackage,input-gpio-encoder))
 
 
+define KernelPackage/input-mfd-gsc
+  SUBMENU:=$(INPUT_MODULES_MENU)
+  TITLE:=Gateworks System Controller Input events
+  DEPENDS:=+kmod-gsc-core +kmod-input-core
+  KCONFIG:=CONFIG_INPUT_GSC
+  FILES:=$(LINUX_DIR)/drivers/input/misc/gsc-input.ko
+  AUTOLOAD:=$(call AutoProbe,gsc-input)
+  $(call AddDepends/input)
+endef
+
+define KernelPackage/input-mfd-gsc/description
+ Kernel module to create Linux Input events from various GSC interrupt events
+endef
+
+$(eval $(call KernelPackage,input-mfd-gsc))
+
+
 define KernelPackage/input-joydev
   SUBMENU:=$(INPUT_MODULES_MENU)
   TITLE:=Joystick device support
