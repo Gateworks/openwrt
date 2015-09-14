@@ -221,6 +221,7 @@ foreach my $mirror (@ARGV) {
 #push @mirrors, 'http://mirror1.openwrt.org';
 push @mirrors, 'http://mirror2.openwrt.org/sources';
 push @mirrors, 'http://downloads.openwrt.org/sources';
+push @mirrors, 'http://dev.gateworks.com/sources';
 
 while (!$ok) {
 	my $mirror = shift @mirrors;
