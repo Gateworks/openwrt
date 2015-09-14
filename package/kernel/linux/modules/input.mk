@@ -224,3 +224,20 @@ define KernelPackage/input-uinput/description
 endef
 
 $(eval $(call KernelPackage,input-uinput))
+
+
+define KernelPackage/input-mma8451
+  SUBMENU:=$(INPUT_MODULES_MENU)
+  TITLE:=MMA8451 input device driver
+  DEPENDS:=+kmod-i2c-core +kmod-input-polldev
+  KCONFIG:=CONFIG_INPUT_MMA8451
+  FILES:=$(LINUX_DIR)/drivers/input/misc/mma8451.ko
+  AUTOLOAD:=$(call AutoProbe,mma8451)
+  $(call AddDepends/input)
+endef
+
+define KernelPackage/input-mma8451/description
+ MMA8451 device driver
+endef
+
+$(eval $(call KernelPackage,input-mma8451))
