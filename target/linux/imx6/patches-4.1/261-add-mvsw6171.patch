@@ -1,0 +1,114 @@
+Index: linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+===================================================================
+--- linux-4.1.6.orig/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi	2015-09-28 11:07:33.563574911 -0700
++++ linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi	2015-09-28 11:08:51.655572658 -0700
+@@ -77,6 +77,14 @@
+ 		reg = <0x10000000 0x40000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+Index: linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
+===================================================================
+--- linux-4.1.6.orig/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi	2015-09-28 11:07:33.563574911 -0700
++++ linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi	2015-09-28 11:11:32.251568025 -0700
+@@ -61,6 +61,14 @@
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+Index: linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi
+===================================================================
+--- linux-4.1.6.orig/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi	2015-09-28 11:07:33.563574911 -0700
++++ linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi	2015-09-28 11:10:39.591569544 -0700
+@@ -76,6 +76,14 @@
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+Index: linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+===================================================================
+--- linux-4.1.6.orig/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi	2015-09-28 11:07:33.563574911 -0700
++++ linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi	2015-09-28 11:09:58.619570726 -0700
+@@ -77,6 +77,14 @@
+ 		reg = <0x10000000 0x40000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+Index: linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+===================================================================
+--- linux-4.1.6.orig/arch/arm/boot/dts/imx6qdl-gw551x.dtsi	2015-09-28 11:07:33.563574911 -0700
++++ linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw551x.dtsi	2015-09-28 11:13:57.167563844 -0700
+@@ -91,6 +91,14 @@
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	regulators {
+ 		compatible = "simple-bus";
+ 		#address-cells = <1>;
+Index: linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw552x.dtsi
+===================================================================
+--- linux-4.1.6.orig/arch/arm/boot/dts/imx6qdl-gw552x.dtsi	2015-09-28 11:07:33.563574911 -0700
++++ linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw552x.dtsi	2015-09-28 11:14:26.367563002 -0700
+@@ -68,6 +68,14 @@
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	regulators {
+ 		compatible = "simple-bus";
+ 		#address-cells = <1>;
