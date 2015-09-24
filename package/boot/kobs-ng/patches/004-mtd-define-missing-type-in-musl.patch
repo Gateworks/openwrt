@@ -1,0 +1,28 @@
+From 370d73f4437c4bc3b0d1518768a593b0c44ea429 Mon Sep 17 00:00:00 2001
+From: Pushpal Sidhu <psidhu@gateworks.com>
+Date: Thu, 24 Sep 2015 10:34:29 -0700
+Subject: [PATCH] mtd: define missing type in musl
+
+Signed-off-by: Pushpal Sidhu <psidhu@gateworks.com>
+---
+ src/mtd.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/mtd.h b/src/mtd.h
+index 99d7887..db5561b 100644
+--- a/src/mtd.h
++++ b/src/mtd.h
+@@ -31,6 +31,10 @@
+ #include "BootControlBlocks.h"
+ #include "rom_nand_hamming_code_ecc.h"
+ 
++#ifndef loff_t
++#define loff_t off_t
++#endif
++
+ //------------------------------------------------------------------------------
+ // Re-definitions of true and false, because the standard ones aren't good
+ // enough?
+-- 
+2.5.3
+
