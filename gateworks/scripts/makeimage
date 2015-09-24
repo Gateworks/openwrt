@@ -1,0 +1,133 @@
+#!/bin/sh
+#
+# Make FLASH firmware images for Gateworks boards based on u-boot
+#
+
+#
+# Model definitions: defines bootloader/kernel/rootfs partitioning scheme
+#   These are user preferences - create custom mappings as needed
+#
+#MODEL_<name>=<arch>:<flash_size>:<kernel_off>:<rootfs_off>:<variant>
+#    u-boot size = kernel_boundary
+#    kernel size = rootfs_boundary - kernel_boundary
+#    rootfs size = flash_size - rootfs_boundary
+#
+MODEL_laguna_spi=cns3xxx:16M:512k:spi
+MODEL_laguna_nor=cns3xxx:16M:384k:nor
+
+usage() {
+   echo "usage: $0 <base-model> <uboot.bin> <openwrt-root> [flash-size]"
+   echo ""
+   echo " Models:"
+   echo "    laguna_spi"
+   echo "    laguna_nor"
+   echo ""
+   exit 1
+}
+
+# convert a str ending with a suffix (m/k/g) to bytes
+bytes() {
+   local num=${1%?}
+   local suf=${1#${1%?}}
+
+   case $suf in
+      k|K) num=$((num*1024)) ;;
+      m|M) num=$((num*1024*1024)) ;;
+      g|G) num=$((num*1024*1024*1024)) ;;
+      *) num=$1 ;;
+   esac
+
+   echo $num
+}
+
+# return filesize in kbytes
+fsize() {
+   local size=$(stat -c %s $1)
+   echo "$((size/1024))k"
+}
+
+[ -z "$1" ] && usage
+
+# parse cmdline options
+PROD=$1          # product (ie laguna_nor)
+UBOOT=$2         # path of u-boot image
+OPENWRT=${3:-./} # dir to openwrt containing bin/<target>
+SIZE=${4:-32m}   # flash size (ie 16m)
+
+eval details=\$MODEL_${PROD}
+[ -z "$details" ] && {
+  echo "invalid model"
+  exit 2
+}  
+
+TARGET=${details%%:*}; details=${details#*:}
+SIZE=${details%%:*}; details=${details#*:}
+KERNEL_BOUNDARY=${details%%:*}; details=${details#*:}
+ROOTFS_BOUNDARY=${details%%:*}; details=${details#*:}
+VARIANT=${details%%:*}; details=${details#*:}
+[ "$4" ] && SIZE=$4
+
+case "$TARGET" in
+	cns3xxx)
+		PREFIX="openwrt"
+		KERNEL=$OPENWRT/bin/$TARGET/${PREFIX}-${TARGET}-squashfs_laguna_$VARIANT.bin
+		[ ! -e "${KERNEL}" ] && PREFIX="gateworks"
+		KERNEL=$OPENWRT/bin/$TARGET/${PREFIX}-${TARGET}-squashfs_laguna_$VARIANT.bin
+		ROOTFS=
+		;;
+	*)
+		KERNEL=$OPENWRT/bin/$TARGET/openwrt-${TARGET}-uImage
+		ROOTFS=$OPENWRT/bin/$TARGET/openwrt-${TARGET}-squashfs.img
+		;;
+esac
+
+
+echo "Model :$PROD"
+echo "Target:$TARGET"
+echo "Flash :$SIZE"
+[ "$VARIANT" ] && echo "Variant=$VARIANT"
+size=$KERNEL_BOUNDARY
+echo "u-boot:$UBOOT $(fsize $UBOOT)@0 ($size)"
+if [ $ROOTFS ]; then
+  size=$(( $(bytes $ROOTFS_BOUNDARY) - $(bytes $KERNEL_BOUNDARY)))
+  echo "kernel:$KERNEL $(fsize $KERNEL)@$KERNEL_BOUNDARY ($((size/1024))k)"
+  size=$(( $(bytes $SIZE) - $(bytes $ROOTFS_BOUNDARY)))
+  echo "rootfs:$ROOTFS $(fsize $ROOTFS)@$ROOTFS_BOUNDARY ($((size/1024))k)"
+  # sanity checks
+  [ "$TARGET" -a "$SIZE" -a -r "$KERNEL" -a -r "$ROOTFS" -a -r "$UBOOT" ] || usage
+  # make sure kernel fits within its boundary
+  a=$(( $(bytes $ROOTFS_BOUNDARY) - $(bytes $KERNEL_BOUNDARY) ))
+  b=$(bytes $(fsize $KERNEL) )
+  [ $b -gt $a ] && {
+   echo "kernel too big ($b > $a)"
+   exit 3
+  }
+else
+  size=$(( $(bytes $SIZE) - $(bytes $KERNEL_BOUNDARY)))
+  echo "kernel+rootfs:$KERNEL $(fsize $KERNEL)@$KERNEL_BOUNDARY ($((size/1024))k)"
+  # sanity checks
+  [ "$TARGET" -a "$SIZE" -a -r "$KERNEL" -a -r "$UBOOT" ] || usage
+fi
+
+
+# create padded blank image
+SIZEM="$(echo -n $SIZE | tr -d M)"
+tr "\000" "\377" < /dev/zero | dd bs=1k count=${SIZEM}k of=$PROD.bin 2>/dev/null
+# pad u-boot+env to kernel boundary
+dd if=$UBOOT of=uboot.bin.$$ bs=$KERNEL_BOUNDARY conv=sync 2>/dev/null
+# append kernel
+cat $KERNEL >> uboot.bin.$$
+if [ $ROOTFS ]; then
+  # pad u-boot+kernel to rootfs boundary
+  dd if=uboot.bin.$$ of=image.bin.$$ bs=$ROOTFS_BOUNDARY conv=sync 2>/dev/null
+  # append rootfs
+  cat $ROOTFS >> image.bin.$$
+else
+	cp uboot.bin.$$ image.bin.$$
+fi
+# copy image into padded file
+dd if=image.bin.$$ of=$PROD.bin conv=notrunc 2>/dev/null
+# cleanup tmpfiles
+rm uboot.bin.$$ image.bin.$$
+
+echo "$PROD.bin complete: $(ls -lh $PROD.bin)"

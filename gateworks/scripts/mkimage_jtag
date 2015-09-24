@@ -1,0 +1,119 @@
+#!/bin/sh
+#
+# mkimage_jtag v1.0.0
+# Copyright 2014-2015 Gateworks Corporation <support@gateworks.com>
+#
+# create a binary image suitable for IMX6 targets for jtag_usbv4
+#
+# usage: mkimage_jtag [<SPL> <u-boot.img>]|[<SPL> <u-boot.img> <ubi>]|[<ubi>]
+#
+# Examples:
+#   # create jtagable bin containing just bootloader (will not overwrite all)
+#   mkimage_jtag <SPL> <u-boot.img> > uboot.bin
+#   # create jtagable bin containing bootloader+ubi (will overwrite all)
+#   mkimage_jtag <SPL> <u-boot.img> <ubi> > image.bin
+#   # create jtagable bin containing ubi (will not overwrite bootloader/env)
+#   mkimage_jtag <ubi> > image.bin
+#
+# This puts a simple header around the binary parts that make up a bootable
+# image, sending the output to stdout.
+#
+# The header consists of the following structure (little-endian):
+#
+# u16 magic: GW
+# u16 erase_mode:
+#      0=erase entire flash (use only on first header)
+#      1=erase none (perform no erase)
+#      2=erase part (erase only this part - offset must align with flash block)
+#      3=erase to end (erase from this part to end of device)
+# u32 offset: byte offset in flash (logical) to program this data
+#      (this must align with a flash block boundary if erasing part or to end
+#       and otherwise must align with a flashs page boundary)
+# u32 dsize: byte size of this data segment
+# u32 psize: part size of this data segment
+#
+# The psize value is only used in the special case where dsize=0 which
+# specifies a bootstream.  This must be the first part in a series of parts
+# and is programmed in a specific fashion on NAND FLASH in accordance with
+# the requirements of the i.MX6 BOOT ROM.  In this case the data must
+# be an i.MX6 bootlet containing an IVT and DCD, such as u-boot.imx.
+#
+
+ERASE_ALL=0
+ERASE_NON=1
+ERASE_PRT=2
+ERASE_END=3
+
+# output binary u32
+# $1 int
+u32() {
+        b0=$(( $(($1>>24)) & 0xff))
+        b1=$(( $(($1>>16)) & 0xff))
+        b2=$(( $(($1>>8)) & 0xff))
+        b3=$(( $(($1>>0)) & 0xff))
+
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b3)"
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b2)"
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b1)"
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b0)"
+}
+
+# output binary u16
+# $1 int
+u16() {
+        b0=$(( $(($1>>8)) & 0xff))
+        b1=$(( $(($1>>0)) & 0xff))
+
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b1)"
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b0)"
+}
+
+# emit a part
+# $1 file
+# $2 erase_mode
+# $3 offset
+# $4 size (only needed if offset==0 for bootloader part size)
+emit()
+{
+        local file=$1
+        local erase_mode=$2
+        local offset=$3
+        local part_size=${4:-0}
+        local fsize
+
+        fsize=$(ls -lL $file | awk '{print $5}')
+
+        /usr/bin/printf "GW" # magic
+        u16 $erase_mode
+        u32 $offset
+        u32 $fsize
+        u32 $part_size
+        cat $file
+}
+
+# output image to stdout
+case $# in
+        # ubi (w/o touching bootloader+env)
+        1)
+        emit $1 $ERASE_END 0x1100000    # rootfs at 17MB+ (erase to end)
+        ;;
+
+        # bootloader (SPL + u-boot.img) w/o eraseing env/ubi
+        2)
+        emit $1 $ERASE_PRT 0 0xE00000   # SPL from 0 to 12MB
+        emit $2 $ERASE_PRT 0x0E00000 0x0200000  # u-boot from 12MB-14MB
+        ;;
+
+        # erase entire part and program SPL + u-boot.img + ubi
+        3)
+        emit $1 $ERASE_ALL  0 0xE00000  # SPL from 0 to 12MB
+        emit $2 $ERASE_NON 0x0E00000    # u-boot at 12MB+
+        emit $3 $ERASE_NON 0x1100000    # rootfs at 17MB+
+        ;;
+
+        # usage
+        *)
+        echo "usage: $0 [<SPL> <u-boot.img>]|[<SPL> <u-boot.img> <ubi>]|[<ubi>]"
+        exit 1
+        ;;
+esac
