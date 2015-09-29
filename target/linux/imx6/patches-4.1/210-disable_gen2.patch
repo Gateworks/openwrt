@@ -1,0 +1,30 @@
+Index: linux-4.1.6/drivers/pci/host/pci-imx6.c
+===================================================================
+--- linux-4.1.6.orig/drivers/pci/host/pci-imx6.c	2015-08-16 20:52:51.000000000 -0700
++++ linux-4.1.6/drivers/pci/host/pci-imx6.c	2015-09-29 15:25:00.300636720 -0700
+@@ -383,12 +383,15 @@
+ 	if (ret)
+ 		return ret;
+ 
++#if 0   /* Disable Gen2 */
+ 	/* Allow Gen2 mode after the link is up. */
+ 	tmp = readl(pp->dbi_base + PCIE_RC_LCR);
+ 	tmp &= ~PCIE_RC_LCR_MAX_LINK_SPEEDS_MASK;
+ 	tmp |= PCIE_RC_LCR_MAX_LINK_SPEEDS_GEN2;
+ 	writel(tmp, pp->dbi_base + PCIE_RC_LCR);
+-
++#else
++	dev_info(pp->dev, "Link: Gen2 disabled\n");
++#endif
+ 	/*
+ 	 * Start Directed Speed Change so the best possible speed both link
+ 	 * partners support can be negotiated.
+@@ -416,7 +419,7 @@
+ 		dev_err(pp->dev, "Failed to bring link up!\n");
+ 	} else {
+ 		tmp = readl(pp->dbi_base + 0x80);
+-		dev_dbg(pp->dev, "Link up, Gen=%i\n", (tmp >> 16) & 0xf);
++		dev_info(pp->dev, "Link up, Gen=%i\n", (tmp >> 16) & 0xf);
+ 	}
+ 
+ 	return ret;
