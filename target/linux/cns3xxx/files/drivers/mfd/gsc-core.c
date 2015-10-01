@@ -312,7 +312,7 @@ static ssize_t gsc_store(struct device *dev, struct device_attribute *attr,
 	if (strcasecmp(name, "powerdown") == 0) {
 		long value;
 
-		ret = strict_strtol(buf, 0, &value);
+		ret = kstrtoul(buf, 0, &value);
 		if (ret == 0)
 			gsc_powerdown(value);
 	} else
