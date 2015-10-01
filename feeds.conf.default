@@ -1,13 +1,13 @@
 # Generic Gateworks package feed
-src-svn gateworks http://svn.gateworks.com/openwrt/packages
+src-git gateworks https://github.com/Gateworks/gw-openwrt-packages.git^0328faab
 # Upstream OpenWRT package feeds
-src-git packages https://github.com/openwrt/packages.git
-src-git luci https://github.com/openwrt/luci.git
-src-git routing https://github.com/openwrt-routing/packages.git
-src-git telephony https://github.com/openwrt/telephony.git
-src-git management https://github.com/openwrt-management/packages.git
-src-git targets https://github.com/openwrt/targets.git
-src-git oldpackages http://git.openwrt.org/packages.git
+src-git packages https://github.com/openwrt/packages.git^52e2f0e8
+src-git luci https://github.com/openwrt/luci.git^8030cc6f
+src-git routing https://github.com/openwrt-routing/packages.git^f4b5a5c6
+src-git telephony https://github.com/openwrt/telephony.git^57135bbd
+src-git management https://github.com/openwrt-management/packages.git^8d1cb3b2
+src-git targets https://github.com/openwrt/targets.git^3baefdcd
+src-git oldpackages http://git.openwrt.org/packages.git^7a333896
 #src-svn xwrt http://x-wrt.googlecode.com/svn/trunk/package
 #src-svn phone svn://svn.openwrt.org/openwrt/feeds/phone
 #src-svn efl svn://svn.openwrt.org/openwrt/feeds/efl
