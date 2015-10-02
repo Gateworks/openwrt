@@ -22,10 +22,13 @@ all: imx6 cns3xxx ixp4xx
 setup:
 	@printf "Setting up OpenWrt build...\n"
 	@if [ "$(DL_DIR)" -a -d "$(DL_DIR)" ]; then \
+		printf "Linking $(shell pwd)/$(OPENWRT)/dl to $(DL_DIR)\n"; \
 		ln -s $(DL_DIR) $(OPENWRT)/dl; \
 	fi
-	@$(OPENWRT)/scripts/feeds update -a
-	@make -C $(OPENWRT)/ package/symlinks
+
+	@printf "Updating Feeds...\n"
+	@make -C $(OPENWRT) defconfig &>/dev/null # first pkg feed update req's this
+	make -C $(OPENWRT)/ package/symlinks-install
 
 define make-profile
 	@mkdir -p logs
@@ -35,7 +38,7 @@ define make-profile
 		make -C $(OPENWRT) $(MAKEARGS) V=s 2>&1 | tee logs/build_$1.log; \
 	else \
 		printf "ERROR: '%s' not found\n" "$(shell pwd)/configs/$1/.config$(PROFILE)"; \
-		exit; \
+		exit 1; \
 	fi
 endef
 
