@@ -43,9 +43,11 @@
 #include <linux/phy.h>
 #include <linux/marvell_phy.h>
 #include <linux/of_platform.h>
+#include <linux/platform_device.h>
 
 #include <linux/io.h>
 #include <asm/irq.h>
+#include <net/dsa.h>
 #include <linux/uaccess.h>
 
 #include "gw16083.h"
@@ -83,6 +85,32 @@ enum {
 	mode_copper = 0,
 	mode_serdes = 1,
 };
+
+#if IS_ENABLED(CONFIG_NET_DSA_MV88E6352)
+static struct dsa_chip_data switch_chip_data = {
+	.port_names = {
+		"lan4",
+		"lan3",
+		"lan2",
+		"lan1",
+		"cpu",
+		"lan5",
+		"lan6",
+	},
+};
+
+static struct dsa_platform_data switch_plat_data = {
+	.nr_chips       = 1,
+	.chip           = &switch_chip_data,
+};
+
+static struct platform_device switch_device = {
+	.name           = "dsa",
+	.id             = 0,
+	.num_resources  = 0,
+	.dev.platform_data = &switch_plat_data,
+};
+#endif
 
 static struct i2c_client *gw16083_client = NULL;
 
@@ -445,6 +473,15 @@ mv88e6176_work(struct work_struct *work)
 	int port;
 	u16 gpio;
 
+#if IS_ENABLED(CONFIG_NET_DSA_MV88E6352)
+	if (pdev->attached_dev && !switch_plat_data.netdev) {
+		switch_plat_data.netdev = &pdev->attached_dev->dev;
+		switch_plat_data.chip[0].host_dev = &pdev->bus->dev;
+		platform_device_register(&switch_device);
+		dev_info(&pdev->dev, "registered GW16083 DSA switch\n");
+	}
+#endif
+
 	mutex_lock(&pdev->lock);
 	gpio = read_switch_scratch(pdev, MV_GPIO_DATA);
 	for (port = 5; port < 7; port++) {
@@ -519,6 +556,18 @@ mv88e6176_work(struct work_struct *work)
 	mutex_unlock(&pdev->lock);
 
 	queue_delayed_work(priv->workq, &priv->work, HZ);
+}
+
+static int
+mv88e6176_read_status(struct phy_device *pdev)
+{
+	return 0;
+}
+
+static int
+mv88e6176_config_aneg(struct phy_device *pdev)
+{
+	return 0;
 }
 
 static int
@@ -688,6 +737,8 @@ static struct phy_driver mv88e6176_phy_driver = {
 	.probe		= &mv88e6176_probe,
 	.remove		= &mv88e6176_remove,
 	.config_init	= &mv88e6176_config_init,
+	.config_aneg	= &mv88e6176_config_aneg,
+	.read_status	= &mv88e6176_read_status,
 	.driver		= { .owner = THIS_MODULE },
 };
 
