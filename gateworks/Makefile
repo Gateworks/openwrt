@@ -21,7 +21,7 @@ all: imx6 cns3xxx ixp4xx
 
 setup:
 	@printf "Setting up OpenWrt build...\n"
-	@if [ "$(DL_DIR)" -a -d "$(DL_DIR)" ]; then \
+	@if [ "$(DL_DIR)" -a -d "$(DL_DIR)" -a ! -e "$(OPENWRT)/dl" ]; then \
 		printf "Linking $(shell pwd)/$(OPENWRT)/dl to $(DL_DIR)\n"; \
 		ln -s $(DL_DIR) $(OPENWRT)/dl; \
 	fi
