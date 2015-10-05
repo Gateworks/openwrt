@@ -17,7 +17,7 @@ GW_SVN_URL?=http://svn.gateworks.com/
 IMX6_TOOLCHAIN?=toolchain-arm_cortex-a9+neon_gcc-4.8-linaro_musl-1.1.11_eabi
 CNS3XXX_TOOLCHAIN?=toolchain-arm_mpcore+vfp_gcc-4.8-linaro_musl-1.1.11_eabi
 
-all: imx6 cns3xxx ixp4xx
+all: imx6 cns3xxx
 
 setup:
 	@printf "Setting up OpenWrt build...\n"
@@ -28,6 +28,7 @@ setup:
 
 	@printf "Updating Feeds...\n"
 	@make -C $(OPENWRT) defconfig &>/dev/null # first pkg feed update req's this
+	make -C $(OPENWRT)/ package/symlinks || test 0
 	make -C $(OPENWRT)/ package/symlinks-install
 
 define make-profile
@@ -48,10 +49,6 @@ imx6: setup
 
 # Build for Laguna Product Family
 cns3xxx: setup
-	$(call make-profile,$@)
-
-# Build for Avila/Cambria Product Family
-ixp4xx: setup
 	$(call make-profile,$@)
 
 ifdef BUILD_BOOTLOADERS
