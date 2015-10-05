@@ -1,0 +1,24 @@
+Index: linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+===================================================================
+--- linux-4.1.6.orig/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi	2015-10-05 13:18:30.973900271 -0700
++++ linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi	2015-10-05 13:21:28.577895147 -0700
+@@ -15,6 +15,7 @@
+ 	/* these are used by bootloader for disabling nodes */
+ 	aliases {
+ 		ethernet1 = &eth1;
++		sky2 = &eth1; /* FIXME */
+ 		led0 = &led0;
+ 		led1 = &led1;
+ 		led2 = &led2;
+Index: linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+===================================================================
+--- linux-4.1.6.orig/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi	2015-10-05 13:18:30.973900271 -0700
++++ linux-4.1.6/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi	2015-10-05 13:20:09.261897435 -0700
+@@ -15,6 +15,7 @@
+ 	/* these are used by bootloader for disabling nodes */
+ 	aliases {
+ 		ethernet1 = &eth1;
++		sky2 = &eth1; /* FIXME */
+ 		led0 = &led0;
+ 		led1 = &led1;
+ 		led2 = &led2;
