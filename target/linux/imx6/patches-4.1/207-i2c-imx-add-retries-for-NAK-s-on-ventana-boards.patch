@@ -1,0 +1,24 @@
+Index: linux-4.1.6/drivers/i2c/busses/i2c-imx.c
+===================================================================
+--- linux-4.1.6.orig/drivers/i2c/busses/i2c-imx.c	2015-08-16 20:52:51.000000000 -0700
++++ linux-4.1.6/drivers/i2c/busses/i2c-imx.c	2015-10-08 16:06:14.347865205 -0700
+@@ -461,6 +461,8 @@
+ {
+ 	if (imx_i2c_read_reg(i2c_imx, IMX_I2C_I2SR) & I2SR_RXAK) {
+ 		dev_dbg(&i2c_imx->adapter.dev, "<%s> No ACK\n", __func__);
++		if (of_machine_is_compatible("gw,ventana"))
++			return -EAGAIN;
+ 		return -EIO;  /* No ACK */
+ 	}
+ 
+@@ -1010,6 +1012,10 @@
+ 	i2c_imx->adapter.nr		= pdev->id;
+ 	i2c_imx->adapter.dev.of_node	= pdev->dev.of_node;
+ 	i2c_imx->base			= base;
++	if (of_machine_is_compatible("gw,ventana")) {
++		dev_info(&pdev->dev, "Adding retries for Ventana GSC\n");
++		i2c_imx->adapter.retries = 3;
++	}
+ 
+ 	/* Get I2C clock */
+ 	i2c_imx->clk = devm_clk_get(&pdev->dev, NULL);
