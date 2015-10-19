@@ -19,7 +19,7 @@ define KernelPackage/dsa
 	CONFIG_NET_SWITCHDEV=y \
 	CONFIG_NET_DSA_HWMON=n
   FILES:=$(LINUX_DIR)/net/dsa/dsa_core.ko
-  AUTOLOAD:=$(call AutoProbe,dsa_core)
+  AUTOLOAD:=$(call AutoLoad,34,dsa_core)
 endef
 
 define KernelPackage/dsa/description
@@ -45,7 +45,7 @@ define KernelPackage/dsa-mv88e6060
 	CONFIG_NET_DSA_MV88E6060 \
 	CONFIG_NET_DSA_TAG_TRAILER=y
   FILES:=$(LINUX_DIR)/drivers/net/dsa/mv88e6060.ko
-  AUTOLOAD:=$(call AutoProbe,mv88e6060)
+  AUTOLOAD:=$(call AutoLoad,34,mv88e6060)
   $(call AddDepends/dsa)
 endef
 
@@ -56,15 +56,32 @@ endef
 $(eval $(call KernelPackage,dsa-mv88e6060))
 
 
+define KernelPackage/dsa-mv88e6xxx
+  TITLE:=Marvell 88E6XXX switch support
+  KCONFIG:=CONFIG_NET_DSA_MV88E6XXX
+  FILES:=$(LINUX_DIR)/drivers/net/dsa/mv88e6xxx_drv.ko
+  AUTOLOAD:=$(call AutoLoad,34,mv88e6xxx_drv)
+  $(call AddDepends/dsa)
+endef
+
+define KernelPackage/dsa-mv88e6xxx/description
+  This enables support for the Marvell 88E6XXX ethernet switch chips.
+endef
+
+$(eval $(call KernelPackage,dsa-mv88e6xxx))
+
+define AddDepends/dsa-mv88e6xxx
+  SUBMENU:=$(DSA_MENU)
+  DEPENDS+=kmod-dsa kmod-dsa-mv88e6xxx $(1)
+endef
+
+
 define KernelPackage/dsa-mv88e6131
   TITLE:=Marvell 88E6085/6095/6095F/6131 switch support
   KCONFIG:=\
 	CONFIG_NET_DSA_MV88E6131 \
-  	CONFIG_NET_DSA_MV88E6XXX=y \
 	CONFIG_NET_DSA_TAG_DSA=y
-  FILES:=$(LINUX_DIR)/drivers/net/dsa/mv88e6xxx_drv.ko
-  AUTOLOAD:=$(call AutoProbe,mv88e6xxx_drv)
-  $(call AddDepends/dsa)
+  $(call AddDepends/dsa-mv88e6xxx)
 endef
 
 define KernelPackage/dsa-mv88e6131/description
@@ -78,11 +95,8 @@ define KernelPackage/dsa-mv88e6123
   TITLE:=Marvell 88E6123/6161/6165 switch support
   KCONFIG:=\
 	CONFIG_NET_DSA_MV88E6123_61_65 \
-  	CONFIG_NET_DSA_MV88E6XXX=y \
 	CONFIG_NET_DSA_TAG_EDSA=y
-  FILES:=$(LINUX_DIR)/drivers/net/dsa/mv88e6xxx_drv.ko
-  AUTOLOAD:=$(call AutoProbe,mv88e6xxx_drv)
-  $(call AddDepends/dsa)
+  $(call AddDepends/dsa-mv88e6xxx)
 endef
 
 define KernelPackage/dsa-mv88e6123/description
@@ -96,11 +110,8 @@ define KernelPackage/dsa-mv88e6171
   TITLE:=Marvell 88E6171/6172 switch support
   KCONFIG:=\
 	CONFIG_NET_DSA_MV88E6131 \
-  	CONFIG_NET_DSA_MV88E6XXX=y \
 	CONFIG_NET_DSA_TAG_DSA=y
-  FILES:=$(LINUX_DIR)/drivers/net/dsa/mv88e6xxx_drv.ko
-  AUTOLOAD:=$(call AutoProbe,mv88e6xxx_drv)
-  $(call AddDepends/dsa)
+  $(call AddDepends/dsa-mv88e6xxx)
 endef
 
 define KernelPackage/dsa-mv88e6171/description
@@ -114,11 +125,8 @@ define KernelPackage/dsa-mv88e6352
   TITLE:=Marvell 88E6176/88E6352 switch support
   KCONFIG:=\
 	CONFIG_NET_DSA_MV88E6352 \
-  	CONFIG_NET_DSA_MV88E6XXX=y \
 	CONFIG_NET_DSA_TAG_DSA=y
-  FILES:=$(LINUX_DIR)/drivers/net/dsa/mv88e6xxx_drv.ko
-  AUTOLOAD:=$(call AutoProbe,mv88e6xxx_drv)
-  $(call AddDepends/dsa)
+  $(call AddDepends/dsa-mv88e6xxx)
 endef
 
 define KernelPackage/dsa-mv88e6352/description
