@@ -1,5 +1,5 @@
 # Require Shell Expansion
-SHELL=/bin/bash
+SHELL=/bin/bash -o pipefail
 
 # Set DL_DIR To symlink to
 DL_DIR?=/usr/src/dl
