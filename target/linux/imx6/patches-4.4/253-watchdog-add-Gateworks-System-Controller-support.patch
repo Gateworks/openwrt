@@ -1,0 +1,45 @@
+From 409fa8a569ccb7d5175f6a65ef8ef0002291ae61 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Tue, 15 Sep 2015 10:55:53 -0700
+Subject: [PATCH] watchdog: add Gateworks System Controller support
+
+This patch adds a Linux watchdog driver for the Gateworks System Controller
+hardware watchdog which is capable of performing a full board power-cycle.
+
+See http://trac.gateworks.com/wiki/gsc
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/watchdog/Kconfig   |   8 ++
+ drivers/watchdog/Makefile  |   1 +
+ drivers/watchdog/gsc_wdt.c | 178 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 187 insertions(+)
+ create mode 100644 drivers/watchdog/gsc_wdt.c
+
+--- a/drivers/watchdog/Kconfig
++++ b/drivers/watchdog/Kconfig
+@@ -399,6 +399,14 @@ config COH901327_WATCHDOG
+ 	  This watchdog is used to reset the system and thus cannot be
+ 	  compiled as a module.
+ 
++config GSC_WATCHDOG
++	tristate "Gateworks System Controller Watchdog"
++	depends on GSC_CORE
++	select WATCHDOG_CORE
++	help
++	  Support for Gateworks System Controller watchdog.
++	  Say 'Y' here to enable the watchdog timer support for GSC chips.
++
+ config TWL4030_WATCHDOG
+ 	tristate "TWL4030 Watchdog"
+ 	depends on TWL4030_CORE
+--- a/drivers/watchdog/Makefile
++++ b/drivers/watchdog/Makefile
+@@ -34,6 +34,7 @@ obj-$(CONFIG_AT91RM9200_WATCHDOG) += at9
+ obj-$(CONFIG_AT91SAM9X_WATCHDOG) += at91sam9_wdt.o
+ obj-$(CONFIG_CADENCE_WATCHDOG) += cadence_wdt.o
+ obj-$(CONFIG_OMAP_WATCHDOG) += omap_wdt.o
++obj-$(CONFIG_GSC_WATCHDOG) += gsc_wdt.o
+ obj-$(CONFIG_TWL4030_WATCHDOG) += twl4030_wdt.o
+ obj-$(CONFIG_21285_WATCHDOG) += wdt285.o
+ obj-$(CONFIG_977_WATCHDOG) += wdt977.o
