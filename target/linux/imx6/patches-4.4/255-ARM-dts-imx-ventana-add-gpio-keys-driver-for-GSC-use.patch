@@ -1,0 +1,148 @@
+From a85edeb45845a62f2a3070c4bbff74774e7c14ae Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Tue, 15 Sep 2015 11:30:47 -0700
+Subject: [PATCH] ARM: dts: imx: ventana: add gpio-keys driver for GSC user
+ pushbutton
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ arch/arm/boot/dts/imx6qdl-gw51xx.dtsi | 13 +++++++++++++
+ arch/arm/boot/dts/imx6qdl-gw52xx.dtsi | 13 +++++++++++++
+ arch/arm/boot/dts/imx6qdl-gw53xx.dtsi | 13 +++++++++++++
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi | 13 +++++++++++++
+ arch/arm/boot/dts/imx6qdl-gw551x.dtsi | 13 +++++++++++++
+ arch/arm/boot/dts/imx6qdl-gw552x.dtsi | 13 +++++++++++++
+ 6 files changed, 78 insertions(+)
+
+--- a/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
+@@ -44,6 +44,19 @@
+ 		};
+ 	};
+ 
++	gpio_keys {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		user_pb {
++			label = "user_pb";
++
++			gpios = <&gsc_gpio 0 GPIO_ACTIVE_LOW>;
++			linux,code = <256>;
++		};
++	};
++
+ 	memory {
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+--- a/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi
+@@ -59,6 +59,19 @@
+ 		};
+ 	};
+ 
++	gpio_keys {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		user_pb {
++			label = "user_pb";
++
++			gpios = <&gsc_gpio 0 GPIO_ACTIVE_LOW>;
++			linux,code = <256>;
++		};
++	};
++
+ 	memory {
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+--- a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+@@ -61,6 +61,19 @@
+ 		};
+ 	};
+ 
++	gpio_keys {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		user_pb {
++			label = "user_pb";
++
++			gpios = <&gsc_gpio 0 GPIO_ACTIVE_LOW>;
++			linux,code = <256>;
++		};
++	};
++
+ 	memory {
+ 		reg = <0x10000000 0x40000000>;
+ 	};
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -61,6 +61,19 @@
+ 		};
+ 	};
+ 
++	gpio_keys {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		user_pb {
++			label = "user_pb";
++
++			gpios = <&gsc_gpio 0 GPIO_ACTIVE_LOW>;
++			linux,code = <256>;
++		};
++	};
++
+ 	memory {
+ 		reg = <0x10000000 0x40000000>;
+ 	};
+--- a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+@@ -74,6 +74,19 @@
+ 		};
+ 	};
+ 
++	gpio_keys {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		user_pb {
++			label = "user_pb";
++
++			gpios = <&gsc_gpio 0 GPIO_ACTIVE_LOW>;
++			linux,code = <256>;
++		};
++	};
++
+ 	memory {
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+--- a/arch/arm/boot/dts/imx6qdl-gw552x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw552x.dtsi
+@@ -51,6 +51,19 @@
+ 		};
+ 	};
+ 
++	gpio_keys {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		user_pb {
++			label = "user_pb";
++
++			gpios = <&gsc_gpio 0 GPIO_ACTIVE_LOW>;
++			linux,code = <256>;
++		};
++	};
++
+ 	memory {
+ 		reg = <0x10000000 0x20000000>;
+ 	};
