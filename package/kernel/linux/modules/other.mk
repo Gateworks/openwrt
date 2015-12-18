@@ -371,6 +371,42 @@ endef
 $(eval $(call KernelPackage,mmc))
 
 
+define KernelPackage/pwm
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Pulse-Width Modulation support
+  KCONFIG:= \
+	CONFIG_PWM=y \
+	CONFIG_REGULATOR_PWM=n \
+	CONFIG_PWM_FSL_FTM=n
+endef
+
+define KernelPackage/pwm/description
+ Pulse Width Modulation subsystem.
+endef
+
+$(eval $(call KernelPackage,pwm))
+
+define AddDepends/pwm
+  SUBMENU:=$(OTHER_MENU)
+  DEPENDS+=kmod-pwm $(1)
+endef
+
+define KernelPackage/pwm-imx
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=IMX Pulse-Width Modulation support
+  KCONFIG:=CONFIG_PWM_IMX
+  FILES:= $(LINUX_DIR)/drivers/pwm/pwm-imx.ko
+  DEPENDS:=@TARGET_imx6
+  AUTOLOAD:=$(call AutoProbe,pwm-imx)
+  $(call AddDepends/pwm)
+endef
+
+define KernelPackage/pwm-imx/description
+ Freescale IMX Pulse Width Modulation support.
+endef
+
+$(eval $(call KernelPackage,pwm-imx))
+
 define KernelPackage/sdhci
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Secure Digital Host Controller Interface support
