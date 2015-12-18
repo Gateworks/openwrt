@@ -1,0 +1,46 @@
+--- a/drivers/net/phy/mvsw61xx.c
++++ b/drivers/net/phy/mvsw61xx.c
+@@ -715,6 +715,7 @@ static int mvsw61xx_probe(struct platfor
+ 	struct mvsw61xx_state *state;
+ 	struct device_node *np = pdev->dev.of_node;
+ 	struct device_node *mdio;
++	struct property *prop;
+ 	char *model_str;
+ 	u32 val;
+ 	int err;
+@@ -723,18 +724,25 @@ static int mvsw61xx_probe(struct platfor
+ 	if (!state)
+ 		return -ENOMEM;
+ 
+-	mdio = of_parse_phandle(np, "mii-bus", 0);
+-	if (!mdio) {
+-		dev_err(&pdev->dev, "Couldn't get MII bus handle\n");
+-		err = -ENODEV;
+-		goto out_err;
+-	}
++	prop = of_find_property(np, "mii-bus-name", NULL);
++	if (prop)
++		state->bus = of_mdio_find_bus_name((const char *)prop->value);
+ 
+-	state->bus = of_mdio_find_bus(mdio);
+ 	if (!state->bus) {
+-		dev_err(&pdev->dev, "Couldn't find MII bus from handle\n");
+-		err = -ENODEV;
+-		goto out_err;
++		mdio = of_parse_phandle(np, "mii-bus", 0);
++		if (!mdio) {
++			dev_err(&pdev->dev, "Couldn't get MII bus handle\n");
++			err = -ENODEV;
++			goto out_err;
++		}
++
++		state->bus = of_mdio_find_bus(mdio);
++		if (!state->bus) {
++			dev_err(&pdev->dev,
++				"Couldn't find MII bus from handle\n");
++			err = -ENODEV;
++			goto out_err;
++		}
+ 	}
+ 
+ 	state->is_indirect = of_property_read_bool(np, "is-indirect");

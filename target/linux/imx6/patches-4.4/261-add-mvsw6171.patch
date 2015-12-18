@@ -1,0 +1,102 @@
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -78,6 +78,14 @@
+ 		reg = <0x10000000 0x40000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+--- a/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
+@@ -61,6 +61,14 @@
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+--- a/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi
+@@ -76,6 +76,14 @@
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+--- a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+@@ -78,6 +78,14 @@
+ 		reg = <0x10000000 0x40000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+--- a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+@@ -91,6 +91,14 @@
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	regulators {
+ 		compatible = "simple-bus";
+ 		#address-cells = <1>;
+--- a/arch/arm/boot/dts/imx6qdl-gw552x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw552x.dtsi
+@@ -68,6 +68,14 @@
+ 		reg = <0x10000000 0x20000000>;
+ 	};
+ 
++	mvsw6171 {
++		compatible = "marvell,88e6171";
++		status = "okay";
++		mii-bus-name = "igb_enet_mii_bus";
++
++		cpu-port-0 = <4>;
++	};
++
+ 	regulators {
+ 		compatible = "simple-bus";
+ 		#address-cells = <1>;
