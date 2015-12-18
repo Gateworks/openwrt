@@ -1,0 +1,50 @@
+--- a/drivers/net/phy/mdio_bus.c
++++ b/drivers/net/phy/mdio_bus.c
+@@ -192,6 +192,25 @@ struct mii_bus *of_mdio_find_bus(struct
+ }
+ EXPORT_SYMBOL(of_mdio_find_bus);
+ 
++/* Helper function for of_mdio_find_bus_name */
++static int of_mdio_bus_match_name(struct device *dev, const void *name)
++{
++       struct mii_bus *bus = to_mii_bus(dev);
++
++       return (strcmp(bus->name, (char *)name) == 0);
++}
++
++struct mii_bus *of_mdio_find_bus_name(const char *name)
++{
++       struct device *d;
++
++       d = class_find_device(&mdio_bus_class, NULL, name,
++                             of_mdio_bus_match_name);
++
++       return d ? to_mii_bus(d) : NULL;
++}
++EXPORT_SYMBOL(of_mdio_find_bus_name);
++
+ /* Walk the list of subnodes of a mdio bus and look for a node that matches the
+  * phy's address with its 'reg' property. If found, set the of_node pointer for
+  * the phy. This allows auto-probed pyh devices to be supplied with information
+--- a/include/linux/of_mdio.h
++++ b/include/linux/of_mdio.h
+@@ -24,6 +24,7 @@ struct phy_device *of_phy_attach(struct
+ 				 phy_interface_t iface);
+ 
+ extern struct mii_bus *of_mdio_find_bus(struct device_node *mdio_np);
++extern struct mii_bus *of_mdio_find_bus_name(const char *name);
+ extern int of_mdio_parse_addr(struct device *dev, const struct device_node *np);
+ 
+ #else /* CONFIG_OF */
+@@ -62,6 +63,11 @@ static inline struct mii_bus *of_mdio_fi
+ 	return NULL;
+ }
+ 
++static inline struct mii_bus *of_mdio_find_bus_name(const char *name)
++{
++       return NULL;
++}
++
+ static inline int of_mdio_parse_addr(struct device *dev,
+ 				     const struct device_node *np)
+ {
