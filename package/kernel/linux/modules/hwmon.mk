@@ -252,21 +252,6 @@ endef
 
 $(eval $(call KernelPackage,hwmon-mfd-gsc))
 
-define KernelPackage/hwmon-gsc
-  TITLE:=Gateworks GSC monitoring support
-  KCONFIG:=CONFIG_SENSORS_GSC
-  FILES:=$(LINUX_DIR)/drivers/hwmon/gsc.ko
-  AUTOLOAD:=$(call AutoLoad,60,gsc)
-  $(call AddDepends/hwmon,+kmod-i2c-core)
-endef
-
-define KernelPackage/hwmon-gsc/description
-  Kernel module for the Gateworks System Controller chips.
-endef
-
-$(eval $(call KernelPackage,hwmon-gsc))
-
-
 define KernelPackage/hwmon-tmp421
   TITLE:=TI TMP421 and compatible monitoring support
   KCONFIG:=CONFIG_SENSORS_TMP421
