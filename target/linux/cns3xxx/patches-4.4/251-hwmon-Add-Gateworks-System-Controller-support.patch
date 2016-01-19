@@ -1,0 +1,48 @@
+From 695349b0f93f5bf21578e63a7fc476147d167507 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Fri, 7 Mar 2014 21:48:28 -0800
+Subject: [PATCH] hwmon: Add Gateworks System Controller support
+
+The Gateworks System controller communicates with a host processor via
+i2c and implements a variety of functions including a system monitor with
+temperature and adc values.
+
+For more information see: http://trac.gateworks.com/wiki/gsc#SystemTemperatureandVoltageMonitor
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/hwmon/Kconfig     |  10 ++
+ drivers/hwmon/Makefile    |   1 +
+ drivers/hwmon/gsc-hwmon.c | 367 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 378 insertions(+)
+ create mode 100644 drivers/hwmon/gsc-hwmon.c
+
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -466,6 +466,16 @@ config SENSORS_FSCHMD
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called fschmd.
+ 
++config SENSORS_GSCHWMON
++	tristate "Gateworks System Controller"
++	depends on I2C
++	help
++	  If you say yes here you get support for the Gateworks System
++	  Controller voltage and temperature sensor.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called gsc-hwmon.
++
+ config SENSORS_GL518SM
+ 	tristate "Genesys Logic GL518SM"
+ 	depends on I2C
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -62,6 +62,7 @@ obj-$(CONFIG_SENSORS_FAM15H_POWER) += fa
+ obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
+ obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
+ obj-$(CONFIG_SENSORS_G762)	+= g762.o
++obj-$(CONFIG_SENSORS_GSCHWMON)	+= gsc-hwmon.o
+ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
+ obj-$(CONFIG_SENSORS_GPIO_FAN)	+= gpio-fan.o
