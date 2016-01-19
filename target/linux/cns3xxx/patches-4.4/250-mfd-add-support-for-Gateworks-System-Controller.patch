@@ -1,0 +1,70 @@
+From 755b4eb2d555bd200e4d7f5275110bcb55f52bb7 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Tue, 15 Sep 2015 10:49:36 -0700
+Subject: [PATCH] mfd: add support for Gateworks System Controller
+
+The Gateworks System Controller is a multi-function device with an I2C bus
+interface which implements the following features:
+ * Real Time Clock (RTC) (emulates ds1672)
+ * System voltage/temperature monitoring
+ * Software controllable Fan controller (6 temperature setpoints)
+ * General Purpose Input / Output (GPIO) expansion (emulates pca955x)
+ * Software Configurable User Push-Button
+ * EEPROM storage (emulates at24x)
+ * Tamper detection
+ * GPS Active Antenna short-circuit auto-detect and recover
+ * Board-level power enable/disable with RTC Wakeup
+ * Hardware Watchdog
+ * Software field-upgradable firmware
+
+See http://trac.gateworks.com/wiki/gsc
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/mfd/Kconfig     |  14 ++
+ drivers/mfd/Makefile    |   4 +
+ drivers/mfd/gsc-core.c  | 459 ++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/mfd/gsc-core.h  |   7 +
+ drivers/mfd/gsc-irq.c   | 129 ++++++++++++++
+ include/linux/mfd/gsc.h |  65 +++++++
+ 6 files changed, 678 insertions(+)
+ create mode 100644 drivers/mfd/gsc-core.c
+ create mode 100644 drivers/mfd/gsc-core.h
+ create mode 100644 drivers/mfd/gsc-irq.c
+ create mode 100644 include/linux/mfd/gsc.h
+
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -210,6 +210,20 @@ config MFD_MC13XXX_I2C
+ 	help
+ 	  Select this if your MC13xxx is connected via an I2C bus.
+ 
++config GSC_CORE
++	tristate "Gateworks System Controller Support"
++	depends on I2C
++	select MFD_CORE
++	select GENERIC_IRQ_CHIP
++	select IRQ_DOMAIN
++	help
++	  Say yes here for support of Gateworks System Controller. This is a
++	  system management IC. This driver provides support for accessing
++	  various features of the device.
++
++	  This driver can be built as a module. If built as a module it will
++	  be called "gsc"
++
+ config MFD_HI6421_PMIC
+ 	tristate "HiSilicon Hi6421 PMU/Codec IC"
+ 	depends on OF
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -13,6 +13,9 @@ obj-$(CONFIG_MFD_CROS_EC)	+= cros_ec.o
+ obj-$(CONFIG_MFD_CROS_EC_I2C)	+= cros_ec_i2c.o
+ obj-$(CONFIG_MFD_CROS_EC_SPI)	+= cros_ec_spi.o
+ 
++gsc-objs			:= gsc-core.o gsc-irq.o
++obj-$(CONFIG_GSC_CORE)		+= gsc.o
++
+ rtsx_pci-objs			:= rtsx_pcr.o rts5209.o rts5229.o rtl8411.o rts5227.o rts5249.o
+ obj-$(CONFIG_MFD_RTSX_PCI)	+= rtsx_pci.o
+ obj-$(CONFIG_MFD_RTSX_USB)	+= rtsx_usb.o
