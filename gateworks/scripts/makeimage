@@ -68,12 +68,11 @@ VARIANT=${details%%:*}; details=${details#*:}
 [ "$4" ] && SIZE=$4
 
 case "$TARGET" in
-	imx61)
-		KERNEL=$OPENWRT/bin/$TARGET/openwrt-${TARGET}-imx6q-${VARIANT}-squashfs.bin
-		ROOTFS=
-		;;
 	cns3xxx)
-		KERNEL=$OPENWRT/bin/$TARGET/openwrt-${TARGET}-squashfs_laguna_$VARIANT.bin
+		PREFIX="openwrt"
+		KERNEL=$OPENWRT/bin/$TARGET/${PREFIX}-${TARGET}-squashfs_laguna_$VARIANT.bin
+		[ ! -e "${KERNEL}" ] && PREFIX="gateworks"
+		KERNEL=$OPENWRT/bin/$TARGET/${PREFIX}-${TARGET}-squashfs_laguna_$VARIANT.bin
 		ROOTFS=
 		;;
 	*)
