@@ -146,12 +146,12 @@ images/ventana: bootloader/ventana/SPL bootloader/ventana/u-boot.img
 		../scripts/mkimage_jtag \
 			../bootloader/ventana/SPL \
 			../bootloader/ventana/u-boot.img \
-			../$(OPENWRT)/bin/imx6/openwrt-imx6-ventana-squashfs-nand_normal.ubi \
+			../$(OPENWRT)/bin/imx6/gateworks-imx6-ventana-squashfs-nand_normal.ubi \
 			> ventana_normal.bin; \
 		../scripts/mkimage_jtag \
 			../bootloader/ventana/SPL \
 			../bootloader/ventana/u-boot.img \
-			../$(OPENWRT)/bin/imx6/openwrt-imx6-ventana-squashfs-nand_large.ubi \
+			../$(OPENWRT)/bin/imx6/gateworks-imx6-ventana-squashfs-nand_large.ubi \
 			> ventana_large.bin; \
 	)
 
