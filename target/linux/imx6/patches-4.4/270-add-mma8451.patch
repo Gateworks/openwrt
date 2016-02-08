@@ -1,0 +1,27 @@
+--- a/drivers/input/misc/Kconfig
++++ b/drivers/input/misc/Kconfig
+@@ -231,6 +231,14 @@ config INPUT_MMA8450
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called mma8450.
+ 
++config INPUT_MMA8451
++	tristate "MMA8451"
++	depends on I2C
++	select INPUT_POLLDEV
++	help
++	  Say Y here if you want to support Freescale's MMA8451 Accelerometer
++	  through I2C interface.
++
+ config INPUT_MPU3050
+ 	tristate "MPU3050 Triaxial gyroscope sensor"
+ 	depends on I2C
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -45,6 +45,7 @@ obj-$(CONFIG_INPUT_MAX8925_ONKEY)	+= max
+ obj-$(CONFIG_INPUT_MAX8997_HAPTIC)	+= max8997_haptic.o
+ obj-$(CONFIG_INPUT_MC13783_PWRBUTTON)	+= mc13783-pwrbutton.o
+ obj-$(CONFIG_INPUT_MMA8450)		+= mma8450.o
++obj-$(CONFIG_INPUT_MMA8451)		+= mma8451.o
+ obj-$(CONFIG_INPUT_MPU3050)		+= mpu3050.o
+ obj-$(CONFIG_INPUT_PALMAS_PWRBUTTON)	+= palmas-pwrbutton.o
+ obj-$(CONFIG_INPUT_PCAP)		+= pcap_keys.o
