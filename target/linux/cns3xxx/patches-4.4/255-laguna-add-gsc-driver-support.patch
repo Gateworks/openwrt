@@ -1,7 +1,5 @@
-Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
-===================================================================
---- linux-3.18.23.orig/arch/arm/mach-cns3xxx/laguna.c	2016-01-05 14:45:07.894616177 -0800
-+++ linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c	2016-01-05 14:45:07.942616177 -0800
+--- a/arch/arm/mach-cns3xxx/laguna.c
++++ b/arch/arm/mach-cns3xxx/laguna.c
 @@ -20,9 +20,11 @@
  #include <linux/init.h>
  #include <linux/kernel.h>
@@ -14,7 +12,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  #include <linux/dma-mapping.h>
  #include <linux/serial_core.h>
  #include <linux/serial_8250.h>
-@@ -612,7 +614,7 @@
+@@ -612,7 +614,7 @@ static struct at24_platform_data laguna_
  
  static struct pca953x_platform_data laguna_pca_data = {
   	.gpio_base = 100,
@@ -23,7 +21,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  };
  
  static struct pca953x_platform_data laguna_pca2_data = {
-@@ -620,14 +622,24 @@
+@@ -620,15 +622,25 @@ static struct pca953x_platform_data lagu
  	.irq_base = -1,
  };
  
@@ -68,7 +66,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  static struct resource laguna_watchdog_resources[] = {
  	[0] = {
  		.start	= CNS3XXX_TC11MP_TWD_BASE + 0x100, // CPU0 watchdog
-@@ -657,6 +674,14 @@
+@@ -657,6 +674,14 @@ static struct platform_device laguna_wat
  };
  
  /*
@@ -83,7 +81,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
   * GPS PPS
   */
  static struct pps_gpio_platform_data laguna_pps_data = {
-@@ -678,14 +703,12 @@
+@@ -678,14 +703,12 @@ static struct platform_device laguna_pps
  
  static struct gpio laguna_gpio_gw2391[] = {
  	{   0, GPIOF_IN           , "*GPS_PPS" },
@@ -98,7 +96,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  	{ 103, GPIOF_OUT_INIT_HIGH, "*V5_EN" },
  	{ 108, GPIOF_IN           , "DIO0" },
  	{ 109, GPIOF_IN           , "DIO1" },
-@@ -696,13 +719,11 @@
+@@ -696,13 +719,11 @@ static struct gpio laguna_gpio_gw2391[]
  
  static struct gpio laguna_gpio_gw2388[] = {
  	{   0, GPIOF_IN           , "*GPS_PPS" },
@@ -112,7 +110,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  	{ 108, GPIOF_IN           , "DIO0" },
  	{ 109, GPIOF_IN           , "DIO1" },
  	{ 110, GPIOF_IN           , "DIO2" },
-@@ -712,14 +733,12 @@
+@@ -712,14 +733,12 @@ static struct gpio laguna_gpio_gw2388[]
  
  static struct gpio laguna_gpio_gw2387[] = {
  	{   0, GPIOF_IN           , "*GPS_PPS" },
@@ -127,7 +125,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  	{ 103, GPIOF_OUT_INIT_HIGH, "*V5_EN" },
  	{ 108, GPIOF_IN           , "DIO0" },
  	{ 109, GPIOF_IN           , "DIO1" },
-@@ -729,8 +748,22 @@
+@@ -729,8 +748,22 @@ static struct gpio laguna_gpio_gw2387[]
  	{ 113, GPIOF_IN           , "DIO5" },
  };
  
@@ -151,7 +149,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  	{   1, GPIOF_OUT_INIT_HIGH, "*USB_HST_VBUS_EN" },
  	{   2, GPIOF_IN           , "*USB_HST_FAULT#" },
  	{   5, GPIOF_IN           , "*USB_OTG_FAULT#" },
-@@ -740,12 +773,10 @@
+@@ -740,12 +773,10 @@ static struct gpio laguna_gpio_gw2385[]
  	{   9, GPIOF_OUT_INIT_LOW , "*SER_EN" },
  	{  10, GPIOF_IN,            "*USER_PB#" },
  	{  11, GPIOF_OUT_INIT_HIGH, "*PERST#" },
@@ -164,7 +162,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  	{   1, GPIOF_OUT_INIT_HIGH, "*USB_HST_VBUS_EN" },
  	{   2, GPIOF_IN           , "*USB_HST_FAULT#" },
  	{   5, GPIOF_IN           , "*USB_OTG_FAULT#" },
-@@ -757,25 +788,21 @@
+@@ -757,25 +788,21 @@ static struct gpio laguna_gpio_gw2384[]
  	{  13, GPIOF_OUT_INIT_HIGH, "*I2CMUX_RST#" },
  	{  14, GPIOF_OUT_INIT_LOW , "J10_DIOLED1" },
  	{  15, GPIOF_OUT_INIT_LOW , "J10_DIOLED2" },
@@ -190,7 +188,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  	{   2, GPIOF_OUT_INIT_HIGH, "*PCIE_RST#" },
  	{   3, GPIOF_IN           , "GPIO0" },
  	{   4, GPIOF_IN           , "GPIO1" },
-@@ -783,19 +810,45 @@
+@@ -783,19 +810,45 @@ static struct gpio laguna_gpio_gw2382[]
  	{  10, GPIOF_OUT_INIT_HIGH, "*USB_PCI_SEL#" },
  	{ 100, GPIOF_IN           , "DIO0" },
  	{ 101, GPIOF_IN           , "DIO1" },
@@ -239,7 +237,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  };
  
  /*
-@@ -811,10 +864,14 @@
+@@ -811,10 +864,14 @@ static void __init laguna_init(void)
  				      cns3xxx_cpu_clock() * (1000000 / 8));
  	clk_register_clkdev(clk, "cpu", NULL);
  
@@ -256,7 +254,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  	/* Set I2C 0-3 drive strength to 21 mA */
  	reg = MISC_IO_PAD_DRIVE_STRENGTH_CTRL_B;
  	*reg |= 0x300;
-@@ -923,8 +980,6 @@
+@@ -923,8 +980,6 @@ static int __init laguna_model_setup(voi
  		return 0;
  
  	printk("Running on Gateworks Laguna %s\n", laguna_info.model);
@@ -265,7 +263,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  
  	/*
  	 * If pcie external interrupts are supported and desired
-@@ -941,16 +996,10 @@
+@@ -941,16 +996,10 @@ static int __init laguna_model_setup(voi
  		reg |= 0x38000000;
  		__raw_writel(reg, mem);
  
@@ -282,7 +280,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  	}
  
  	if (strncmp(laguna_info.model, "GW", 2) == 0) {
-@@ -1063,19 +1112,56 @@
+@@ -1063,19 +1112,56 @@ static int __init laguna_model_setup(voi
  		if ( (strncmp(laguna_info.model, "GW2388", 6) == 0)
  		  || (strncmp(laguna_info.model, "GW2389", 6) == 0) )
  		{
@@ -345,7 +343,7 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
  			laguna_gpio_leds[0].gpio = 115;
  			laguna_gpio_leds[1].gpio = 12;
  			laguna_gpio_leds[1].name = "red";
-@@ -1087,42 +1173,96 @@
+@@ -1087,42 +1173,96 @@ static int __init laguna_model_setup(voi
  			laguna_gpio_leds[3].name = "blue";
  			laguna_gpio_leds[3].active_low = 0,
  			laguna_gpio_leds_data.num_leds = 4;

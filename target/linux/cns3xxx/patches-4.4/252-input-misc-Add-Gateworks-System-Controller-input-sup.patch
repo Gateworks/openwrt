@@ -26,9 +26,9 @@ Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 
 --- a/drivers/input/misc/Kconfig
 +++ b/drivers/input/misc/Kconfig
-@@ -93,6 +93,17 @@ config INPUT_BMA150
+@@ -103,6 +103,17 @@ config INPUT_E3X0_BUTTON
  	  To compile this driver as a module, choose M here: the
- 	  module will be called bma150.
+ 	  module will be called e3x0_button.
  
 +config INPUT_GSC
 +	tristate "Gateworks System Controller Input support"
@@ -46,11 +46,11 @@ Signed-off-by: Tim Harvey <tharvey@gateworks.com>
  	depends on PCSPKR_PLATFORM
 --- a/drivers/input/misc/Makefile
 +++ b/drivers/input/misc/Makefile
-@@ -47,6 +47,7 @@ obj-$(CONFIG_INPUT_PALMAS_PWRBUTTON)	+=
+@@ -50,6 +50,7 @@ obj-$(CONFIG_INPUT_PALMAS_PWRBUTTON)	+=
  obj-$(CONFIG_INPUT_PCAP)		+= pcap_keys.o
  obj-$(CONFIG_INPUT_PCF50633_PMU)	+= pcf50633-input.o
  obj-$(CONFIG_INPUT_PCF8574)		+= pcf8574_keypad.o
 +obj-$(CONFIG_INPUT_GSC)			+= gsc-input.o
  obj-$(CONFIG_INPUT_PCSPKR)		+= pcspkr.o
+ obj-$(CONFIG_INPUT_PM8941_PWRKEY)	+= pm8941-pwrkey.o
  obj-$(CONFIG_INPUT_PM8XXX_VIBRATOR)	+= pm8xxx-vibrator.o
- obj-$(CONFIG_INPUT_PMIC8XXX_PWRKEY)	+= pmic8xxx-pwrkey.o

@@ -18,7 +18,7 @@ Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 
 --- a/drivers/watchdog/Kconfig
 +++ b/drivers/watchdog/Kconfig
-@@ -369,6 +369,14 @@ config COH901327_WATCHDOG
+@@ -399,6 +399,14 @@ config COH901327_WATCHDOG
  	  This watchdog is used to reset the system and thus cannot be
  	  compiled as a module.
  

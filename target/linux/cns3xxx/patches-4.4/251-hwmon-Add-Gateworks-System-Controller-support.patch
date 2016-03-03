@@ -19,7 +19,7 @@ Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 
 --- a/drivers/hwmon/Kconfig
 +++ b/drivers/hwmon/Kconfig
-@@ -466,6 +466,16 @@ config SENSORS_FSCHMD
+@@ -486,6 +486,16 @@ config SENSORS_FSCHMD
  	  This driver can also be built as a module.  If so, the module
  	  will be called fschmd.
  
@@ -38,7 +38,7 @@ Signed-off-by: Tim Harvey <tharvey@gateworks.com>
  	depends on I2C
 --- a/drivers/hwmon/Makefile
 +++ b/drivers/hwmon/Makefile
-@@ -62,6 +62,7 @@ obj-$(CONFIG_SENSORS_FAM15H_POWER) += fa
+@@ -64,6 +64,7 @@ obj-$(CONFIG_SENSORS_FAM15H_POWER) += fa
  obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
  obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
  obj-$(CONFIG_SENSORS_G762)	+= g762.o
