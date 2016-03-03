@@ -51,10 +51,12 @@ Index: linux-3.18.23/arch/arm/mach-cns3xxx/laguna.c
 -		I2C_BOARD_INFO("pca9555", 0x27),
 -		.platform_data = &laguna_pca2_data,
 -	},{
- 		I2C_BOARD_INFO("gsp", 0x29),
+-		I2C_BOARD_INFO("gsp", 0x29),
++		I2C_BOARD_INFO("gsc_hwmon", 0x29),
  	},{
  		I2C_BOARD_INFO ("24c08",0x50),
-@@ -641,6 +653,11 @@
+ 		.platform_data = &laguna_eeprom_info,
+@@ -641,6 +653,11 @@ static struct i2c_board_info __initdata
   * Watchdog
   */
  
