@@ -181,6 +181,14 @@ define Build/Compile
 		OPENWRT_OPTIMIZATION_FLAGS="$(TARGET_CFLAGS)" \
 		$(OPENSSL_MAKEFLAGS) \
 		build-shared
+	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
+		CC="$(TARGET_CC)" \
+		ASFLAGS="$(TARGET_ASFLAGS) -I$(PKG_BUILD_DIR)/crypto -c" \
+		AR="$(TARGET_CROSS)ar r" \
+		RANLIB="$(TARGET_CROSS)ranlib" \
+		OPENWRT_OPTIMIZATION_FLAGS="$(TARGET_CFLAGS)" \
+		$(OPENSSL_MAKEFLAGS) \
+		engines
 	# Work around openssl build bug to link libssl.so with libcrypto.so.
 	-rm $(PKG_BUILD_DIR)/libssl.so.*.*.*
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
