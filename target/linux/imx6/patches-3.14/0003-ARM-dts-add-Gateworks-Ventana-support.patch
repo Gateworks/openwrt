@@ -1457,7 +1457,7 @@ Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
 +
 +	accelerometer: fxos8700@1e {
 +		compatible = "fsl,fxos8700";
-+		reg = <0x13>;
++		reg = <0x1e>;
 +	};
 +
 +	codec: sgtl5000@0a {
