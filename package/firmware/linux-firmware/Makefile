@@ -81,3 +81,23 @@ define Package/ibt-firmware/install
 endef
 
 $(eval $(call BuildPackage,ibt-firmware))
+
+define Package/ar3k-firmware
+  SECTION:=firmware
+  CATEGORY:=Firmware
+  URL:=http://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git
+  TITLE:=ath3k firmware
+endef
+
+define Build/Compile
+
+endef
+
+define Package/ar3k-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/ar3k
+	$(CP) \
+		$(PKG_BUILD_DIR)/ar3k/*.dfu \
+		$(1)/lib/firmware/ar3k
+endef
+
+$(eval $(call BuildPackage,ar3k-firmware))
