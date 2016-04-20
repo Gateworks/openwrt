@@ -1,0 +1,34 @@
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -169,6 +169,20 @@ config MFD_MC13XXX_I2C
+ 	help
+ 	  Select this if your MC13xxx is connected via an I2C bus.
+ 
++config GSC_CORE
++	tristate "Gateworks System Controller Support"
++	depends on I2C
++	select MFD_CORE
++	select GENERIC_IRQ_CHIP
++	select IRQ_DOMAIN
++	help
++	  Say yes here for support of Gateworks System Controller. This is a
++	  system management IC. This driver provides support for accessing
++	  various features of the device.
++
++	  This driver can be built as a module. If built as a module it will
++	  be called "gsc"
++
+ config HTC_EGPIO
+ 	bool "HTC EGPIO support"
+ 	depends on GENERIC_HARDIRQS && GPIOLIB && ARM
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -15,6 +15,8 @@ obj-$(CONFIG_MFD_CROS_EC_SPI)	+= cros_ec
+ rtsx_pci-objs			:= rtsx_pcr.o rts5209.o rts5229.o rtl8411.o rts5227.o rts5249.o
+ obj-$(CONFIG_MFD_RTSX_PCI)	+= rtsx_pci.o
+ 
++gsc-objs			:= gsc-core.o gsc-irq.o
++obj-$(CONFIG_GSC_CORE)		+= gsc.o
+ obj-$(CONFIG_HTC_EGPIO)		+= htc-egpio.o
+ obj-$(CONFIG_HTC_PASIC3)	+= htc-pasic3.o
+ obj-$(CONFIG_HTC_I2CPLD)	+= htc-i2cpld.o

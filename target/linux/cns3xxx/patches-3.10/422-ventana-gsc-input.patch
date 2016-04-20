@@ -1,0 +1,30 @@
+--- a/drivers/input/misc/Kconfig
++++ b/drivers/input/misc/Kconfig
+@@ -93,6 +93,17 @@ config INPUT_BMA150
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called bma150.
+ 
++config INPUT_GSC
++	tristate "Gateworks System Controller Input support"
++	depends on GSC_CORE
++	help
++	Support for Gateworks System Controller input device.
++	  Say Y here if you want to enable Linux input device support for
++	  GSC user-pushbutton, and tamper events.
++
++	  To compile this driver as a module, choose M here. The module will
++	  be called gsc_input.
++
+ config INPUT_PCSPKR
+ 	tristate "PC Speaker support"
+ 	depends on PCSPKR_PLATFORM
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -42,6 +42,7 @@ obj-$(CONFIG_INPUT_MPU3050)		+= mpu3050.
+ obj-$(CONFIG_INPUT_PCAP)		+= pcap_keys.o
+ obj-$(CONFIG_INPUT_PCF50633_PMU)	+= pcf50633-input.o
+ obj-$(CONFIG_INPUT_PCF8574)		+= pcf8574_keypad.o
++obj-$(CONFIG_INPUT_GSC)			+= gsc-input.o
+ obj-$(CONFIG_INPUT_PCSPKR)		+= pcspkr.o
+ obj-$(CONFIG_INPUT_PM8XXX_VIBRATOR)	+= pm8xxx-vibrator.o
+ obj-$(CONFIG_INPUT_PMIC8XXX_PWRKEY)	+= pmic8xxx-pwrkey.o
