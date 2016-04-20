@@ -56,9 +56,17 @@ platform_do_upgrade_combined() {
 		local append=""
 		[ -f "$CONF_TAR" -a "$SAVE_CONFIG" -eq 1 ] && append="-j $CONF_TAR"
 
-		dd if="$1" bs=$CI_BLKSZ skip=1 count=$kern_blocks 2>/dev/null | mtd write - kernel
-		dd if="$1" bs=$CI_BLKSZ skip=$((1+$kern_blocks)) count=$root_blocks 2>/dev/null | \
-				 mtd -r $append write - rootfs
+		while [ 1 ]; do
+			dd if="$1" bs=$CI_BLKSZ skip=1 count=$kern_blocks 2>/dev/null | mtd write - kernel
+			[ $? -eq 0 ] && break
+			echo "mtd write failed - retry..."
+		done
+		while [ 1 ]; do
+			dd if="$1" bs=$CI_BLKSZ skip=$((1+$kern_blocks)) count=$root_blocks 2>/dev/null | \
+				 mtd $append write - rootfs
+			[ $? -eq 0 ] && break
+		done
+		reboot
 	else
 		echo "invalid image"
 	fi
