@@ -485,9 +485,13 @@ mv88e6176_read_status(struct phy_device *pdev)
 					state->sfp_compat = false;
 				else
 					state->sfp_compat = true;
+				/* trigger a re-select/enable below */
+				state->serdes = !serdes;
+				pdev->state = PHY_RUNNING;
 			} else {
 				state->sfp_compat = false;
 				state->sfp_enabled = false;
+				pdev->state = PHY_NOLINK;
 			}
 		}
 		if (state->sfp_signal != sfp_signal) {
@@ -510,11 +514,8 @@ mv88e6176_read_status(struct phy_device *pdev)
 			}
 		}
 
-		/*
-		 * if serdes and compatible SFP module and not yet enabled
-		 * then enable for serdes
-		 */
-		if (serdes && state->sfp_compat && state->sfp_signal &&
+		/* if compatible SFP module and not yet enabled then enable */
+		if (state->sfp_compat && state->sfp_signal &&
 		    !state->sfp_enabled)
 		{
 			if (!config_mv88e1111_port_sfp(pdev, port, 1))
