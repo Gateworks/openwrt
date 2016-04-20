@@ -1,0 +1,201 @@
+--- a/drivers/net/wireless/ath/ath9k/hw.h
++++ b/drivers/net/wireless/ath/ath9k/hw.h
+@@ -741,6 +741,7 @@ enum ath_cal_list {
+ #define AH_UNPLUGGED    0x2 /* The card has been physically removed. */
+ #define AH_FASTCC       0x4
+ #define AH_NO_EEP_SWAP  0x8 /* Do not swap EEPROM data */
++#define AH_HARD_RESET   0x10 /* hard reset in progress - do not wait for queues */
+ 
+ struct ath_hw {
+ 	struct ath_ops reg_ops;
+--- a/drivers/net/wireless/ath/ath9k/mac.c
++++ b/drivers/net/wireless/ath/ath9k/mac.c
+@@ -149,13 +149,15 @@ void ath9k_hw_abort_tx_dma(struct ath_hw
+ 	REG_SET_BIT(ah, AR_DIAG_SW, AR_DIAG_FORCE_CH_IDLE_HIGH);
+ 	REG_SET_BIT(ah, AR_D_GBL_IFS_MISC, AR_D_GBL_IFS_MISC_IGNORE_BACKOFF);
+ 
+-	for (q = 0; q < AR_NUM_QCU; q++) {
+-		for (i = 0; i < maxdelay; i++) {
+-			if (i)
+-				udelay(5);
++	if (!(ah->ah_flags & AH_HARD_RESET)) {
++		for (q = 0; q < AR_NUM_QCU; q++) {
++			for (i = 0; i < maxdelay; i++) {
++				if (i)
++					udelay(5);
+ 
+-			if (!ath9k_hw_numtxpending(ah, q))
+-				break;
++				if (!ath9k_hw_numtxpending(ah, q))
++					break;
++			}
+ 		}
+ 	}
+ 
+--- a/drivers/net/wireless/ath/ath9k/main.c
++++ b/drivers/net/wireless/ath/ath9k/main.c
+@@ -16,6 +16,7 @@
+ 
+ #include <linux/nl80211.h>
+ #include <linux/delay.h>
++#include <linux/rtnetlink.h>
+ #include "ath9k.h"
+ #include "btcoex.h"
+ 
+@@ -181,8 +182,13 @@ static void __ath_cancel_work(struct ath
+ 
+ void ath_cancel_work(struct ath_softc *sc)
+ {
++	struct ath_hw *ah = sc->sc_ah;
++	struct ath_common *common = ath9k_hw_common(ah);
+ 	__ath_cancel_work(sc);
+-	cancel_work_sync(&sc->hw_reset_work);
++
++	if (!(test_bit(ATH_OP_HW_RESET, &common->op_flags))) {
++		cancel_work_sync(&sc->hw_reset_work);
++	}
+ }
+ 
+ void ath_restart_work(struct ath_softc *sc)
+@@ -705,13 +711,6 @@ void ath9k_queue_reset(struct ath_softc
+ 	ieee80211_queue_work(sc->hw, &sc->hw_reset_work);
+ }
+ 
+-void ath_reset_work(struct work_struct *work)
+-{
+-	struct ath_softc *sc = container_of(work, struct ath_softc, hw_reset_work);
+-
+-	ath_reset(sc);
+-}
+-
+ /**********************/
+ /* mac80211 callbacks */
+ /**********************/
+@@ -785,8 +784,13 @@ static int ath9k_start(struct ieee80211_
+ 	clear_bit(ATH_OP_INVALID, &common->op_flags);
+ 	sc->sc_ah->is_monitoring = false;
+ 
+-	if (!ath_complete_reset(sc, false))
+-		ah->reset_power_on = false;
++	if (test_bit(ATH_OP_HW_RESET, &common->op_flags)) {
++		if (!ath_complete_reset(sc, true))
++			ah->reset_power_on = false;
++	} else {
++		if (!ath_complete_reset(sc, false))
++			ah->reset_power_on = false;
++	}
+ 
+ 	if (ah->led_pin >= 0) {
+ 		ath9k_hw_cfg_output(ah, ah->led_pin,
+@@ -962,7 +966,84 @@ static void ath9k_stop(struct ieee80211_
+ 	ath_dbg(common, CONFIG, "Driver halt\n");
+ }
+ 
+-static bool ath9k_uses_beacons(int type)
++
++static void ath9k_restore_keys(struct ieee80211_hw *hw,
++				struct ieee80211_vif *vif,
++				struct ieee80211_sta *sta,
++				struct ieee80211_key_conf *key,
++				void *data)
++{
++  struct ath_softc *sc = data;
++	struct ath_hw *ah = sc->sc_ah;
++	struct ath_common *common = ath9k_hw_common(ah);
++	int ret = 0;
++
++	ret = ath_key_config(common, vif, sta, key);
++	if (ret >= 0) {
++		key->hw_key_idx = ret;
++		/* push IV and Michael MIC generation to stack */
++		key->flags |= IEEE80211_KEY_FLAG_GENERATE_IV;
++		if (key->cipher == WLAN_CIPHER_SUITE_TKIP)
++			key->flags |= IEEE80211_KEY_FLAG_GENERATE_MMIC;
++		if (sc->sc_ah->sw_mgmt_crypto &&
++		    key->cipher == WLAN_CIPHER_SUITE_CCMP)
++			key->flags |= IEEE80211_KEY_FLAG_SW_MGMT_TX;
++		ret = 0;
++	}
++
++ 	if (sta && sta->drv_priv) {
++		struct ath_node *an = (struct ath_node *) sta->drv_priv;
++		if (an)
++			an->ps_key = ret;
++	}
++}
++
++static void ath9k_reset_vif_iter(void *data, u8 *mac, struct ieee80211_vif *vif)
++{
++	struct ath_softc *sc = data;
++
++	ieee80211_iter_keys(sc->hw, vif, ath9k_restore_keys, sc);
++}
++
++void ath_reset_work(struct work_struct *work)
++{
++	struct ath_softc *sc = container_of(work, struct ath_softc, hw_reset_work);
++	struct ath_hw *ah = sc->sc_ah;
++	struct ath_common *common = ath9k_hw_common(ah);
++	int i;
++
++	// Fully Stop Driver
++	ah->ah_flags |= AH_HARD_RESET;
++	ath9k_stop(sc->hw);
++	ah->ah_flags &= ~AH_HARD_RESET;
++
++	// clear keymap
++	for (i = 0; i < common->keymax; i++) {
++		clear_bit(i, common->keymap);
++		clear_bit(i, common->ccmp_keymap);
++	}
++
++	// Fully Start Driver
++	ath9k_start(sc->hw);
++
++	// Now restart the queues
++	for (i = 0; i < ATH9K_NUM_TX_QUEUES; i++) {
++		if (!ATH_TXQ_SETUP(sc, i))
++			continue;
++
++		spin_lock_bh(&sc->tx.txq[i].axq_lock);
++		ath_txq_schedule(sc, &sc->tx.txq[i]);
++		spin_unlock_bh(&sc->tx.txq[i].axq_lock);
++	}
++
++	// restore keys
++	rtnl_lock();
++	ieee80211_iterate_active_interfaces(sc->hw, IEEE80211_IFACE_ITER_RESUME_ALL,
++		ath9k_reset_vif_iter, sc);
++	rtnl_unlock();
++}
++
++bool ath9k_uses_beacons(int type)
+ {
+ 	switch (type) {
+ 	case NL80211_IFTYPE_AP:
+--- a/drivers/net/wireless/ath/ath9k/recv.c
++++ b/drivers/net/wireless/ath/ath9k/recv.c
+@@ -476,7 +476,11 @@ bool ath_stoprecv(struct ath_softc *sc)
+ 
+ 	ath9k_hw_abortpcurecv(ah);
+ 	ath9k_hw_setrxfilter(ah, 0);
+-	stopped = ath9k_hw_stopdmarecv(ah, &reset);
++
++	if (!(ah->ah_flags & AH_HARD_RESET))
++		stopped = ath9k_hw_stopdmarecv(ah, &reset);
++	else
++		stopped = true;
+ 
+ 	ath_flushrecv(sc);
+ 
+--- a/drivers/net/wireless/ath/ath9k/xmit.c
++++ b/drivers/net/wireless/ath/ath9k/xmit.c
+@@ -1778,7 +1778,7 @@ bool ath_drain_all_txq(struct ath_softc
+ 			npend |= BIT(i);
+ 	}
+ 
+-	if (npend)
++	if (npend && !test_bit(ATH_OP_HW_RESET, &common->op_flags))
+ 		ath_err(common, "Failed to stop TX DMA, queues=0x%03x!\n", npend);
+ 
+ 	for (i = 0; i < ATH9K_NUM_TX_QUEUES; i++) {
