@@ -1,0 +1,47 @@
+From 4327e2a93909ea98e0ae7f9232f7191dba11d166 Mon Sep 17 00:00:00 2001
+From: Pushpal Sidhu <psidhu@gateworks.com>
+Date: Wed, 10 Jun 2015 15:21:33 -0700
+Subject: [PATCH] pci: imx6: disable Gen2
+
+Disable pcie-gen2 in this kernel as the products meant to run it do not fall
+within specification for it. Instead, leave only Gen1 enabled.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+Signed-off-by: Pushpal Sidhu <psidhu@gateworks.com>
+---
+ drivers/pci/host/pci-imx6.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/pci/host/pci-imx6.c b/drivers/pci/host/pci-imx6.c
+index e0ea1f7..2949636 100644
+--- a/drivers/pci/host/pci-imx6.c
++++ b/drivers/pci/host/pci-imx6.c
+@@ -396,12 +396,15 @@ static int imx6_pcie_start_link(struct pcie_port *pp)
+ 	if (ret)
+ 		return ret;
+ 
++#if 0   /* Disable Gen2 */
+ 	/* Allow Gen2 mode after the link is up. */
+ 	tmp = readl(pp->dbi_base + PCIE_RC_LCR);
+ 	tmp &= ~PCIE_RC_LCR_MAX_LINK_SPEEDS_MASK;
+ 	tmp |= PCIE_RC_LCR_MAX_LINK_SPEEDS_GEN2;
+ 	writel(tmp, pp->dbi_base + PCIE_RC_LCR);
+-
++#else
++	dev_info(pp->dev, "Link: Gen2 disabled\n");
++#endif
+ 	/*
+ 	 * Start Directed Speed Change so the best possible speed both link
+ 	 * partners support can be negotiated.
+@@ -429,7 +432,7 @@ static int imx6_pcie_start_link(struct pcie_port *pp)
+ 		dev_err(pp->dev, "Failed to bring link up!\n");
+ 	} else {
+ 		tmp = readl(pp->dbi_base + 0x80);
+-		dev_dbg(pp->dev, "Link up, Gen=%i\n", (tmp >> 16) & 0xf);
++		dev_info(pp->dev, "Link up, Gen=%i\n", (tmp >> 16) & 0xf);
+ 	}
+ 
+ 	return ret;
+-- 
+2.4.3
+
