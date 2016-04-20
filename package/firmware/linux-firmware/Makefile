@@ -61,3 +61,23 @@ define Package/r8188eu-firmware/install
 endef
 
 $(eval $(call BuildPackage,r8188eu-firmware))
+
+define Package/ibt-firmware
+  SECTION:=firmware
+  CATEGORY:=Firmware
+  URL:=http://git.kernel.org/cgit/linux/kernel/git/firmware/linux-firmware.git
+  TITLE:=Intel bluetooth firmware
+endef
+
+define Build/Compile
+
+endef
+
+define Package/ibt-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/intel
+	$(CP) \
+		$(PKG_BUILD_DIR)/intel/*.bseq \
+		$(1)/lib/firmware/intel
+endef
+
+$(eval $(call BuildPackage,ibt-firmware))
