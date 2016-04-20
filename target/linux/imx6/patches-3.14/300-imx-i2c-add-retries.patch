@@ -1,0 +1,23 @@
+--- a/drivers/i2c/busses/i2c-imx.c
++++ b/drivers/i2c/busses/i2c-imx.c
+@@ -298,6 +298,8 @@ static int i2c_imx_acked(struct imx_i2c_
+ {
+ 	if (imx_i2c_read_reg(i2c_imx, IMX_I2C_I2SR) & I2SR_RXAK) {
+ 		dev_dbg(&i2c_imx->adapter.dev, "<%s> No ACK\n", __func__);
++		if (of_machine_is_compatible("gw,ventana"))
++			return -EAGAIN;
+ 		return -EIO;  /* No ACK */
+ 	}
+ 
+@@ -637,6 +639,11 @@ static int i2c_imx_probe(struct platform
+ 	i2c_imx->adapter.dev.of_node	= pdev->dev.of_node;
+ 	i2c_imx->base			= base;
+ 
++	if (of_machine_is_compatible("gw,ventana")) {
++		dev_info(&pdev->dev, "Adding i2c retries for Ventana GSC\n");
++		i2c_imx->adapter.retries = 3;
++	}
++
+ 	/* Get I2C clock */
+ 	i2c_imx->clk = devm_clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(i2c_imx->clk)) {
