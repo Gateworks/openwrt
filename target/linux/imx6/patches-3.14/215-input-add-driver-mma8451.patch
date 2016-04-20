@@ -1,0 +1,31 @@
+Index: linux-3.14.16/drivers/input/misc/Makefile
+===================================================================
+--- linux-3.14.16.orig/drivers/input/misc/Makefile	2014-08-07 16:50:59.000000000 -0700
++++ linux-3.14.16/drivers/input/misc/Makefile	2014-12-17 10:06:38.694105207 -0800
+@@ -39,6 +39,7 @@
+ obj-$(CONFIG_INPUT_MAX8997_HAPTIC)	+= max8997_haptic.o
+ obj-$(CONFIG_INPUT_MC13783_PWRBUTTON)	+= mc13783-pwrbutton.o
+ obj-$(CONFIG_INPUT_MMA8450)		+= mma8450.o
++obj-$(CONFIG_INPUT_MMA8451)		+= mma8451.o
+ obj-$(CONFIG_INPUT_MPU3050)		+= mpu3050.o
+ obj-$(CONFIG_INPUT_PCAP)		+= pcap_keys.o
+ obj-$(CONFIG_INPUT_PCF50633_PMU)	+= pcf50633-input.o
+Index: linux-3.14.16/drivers/input/misc/Kconfig
+===================================================================
+--- linux-3.14.16.orig/drivers/input/misc/Kconfig	2014-08-07 16:50:59.000000000 -0700
++++ linux-3.14.16/drivers/input/misc/Kconfig	2014-12-17 12:57:57.241808679 -0800
+@@ -187,6 +187,14 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called mma8450.
+ 
++config INPUT_MMA8451
++	tristate "MMA8451"
++	depends on I2C
++	select INPUT_POLLDEV
++	help
++	  Say Y here if you want to support Freescale's MMA8451 Accelerometer
++	  through I2C interface.
++
+ config INPUT_MPU3050
+ 	tristate "MPU3050 Triaxial gyroscope sensor"
+ 	depends on I2C
