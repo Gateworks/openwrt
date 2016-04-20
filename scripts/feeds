@@ -106,6 +106,7 @@ sub update_index($)
 my %update_method = (
 	'src-svn' => {
 		'init'		=> "svn checkout '%s' '%s'",
+		'init_commit'	=> "svn checkout '%s' '%s' && cd '%s' && svn update -r %s && cd -",
 		'update'	=> "svn update",
 		'controldir'	=> ".svn",
 		'revision'	=> "svn info | grep 'Revision' | cut -d ' ' -f 2 | tr -d '\n'"},
