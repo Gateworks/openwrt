@@ -1,0 +1,204 @@
+--- a/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw51xx.dtsi
+@@ -131,19 +131,45 @@
+ 		pagesize = <16>;
+ 	};
+ 
+-	gpio: pca9555@23 {
++	gsc: gsc@20 {
++		compatible = "gw,gsc";
++		reg = <0x20>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <4 1>;
++		interrupt-controller;
++		#interrupt-cells = <1>;
++
++		/* GSC watchdog */
++		watchdog {
++			compatible = "gw,gsc_wdt";
++			status = "okay";
++		};
++
++		/* Linux input events from GSC interrupt events */
++		input {
++			compatible = "gw,gsc_input";
++			interrupt-parent = <&gsc>;
++			interrupts = <0 1 2 5 7>;
++			interrupt-names = "button", "key-erased", "eeprom-wp", "tamper", "button-held";
++			status = "okay";
++		};
++	};
++
++	gsc_gpio: pca9555@23 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x23>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
++		interrupt-parent = <&gsc>;
++		interrupts = <4>;
+ 	};
+ 
+-	hwmon: gsc@29 {
++	gsc_hwmon: hwmon@29 {
+ 		compatible = "gw,gsp";
+ 		reg = <0x29>;
+ 	};
+ 
+-	rtc: ds1672@68 {
++	gsc_rtc: ds1672@68 {
+ 		compatible = "dallas,ds1672";
+ 		reg = <0x68>;
+ 	};
+--- a/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi
+@@ -193,19 +193,45 @@
+ 		pagesize = <16>;
+ 	};
+ 
+-	gpio: pca9555@23 {
++	gsc: gsc@20 {
++		compatible = "gw,gsc";
++		reg = <0x20>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <4 1>;
++		interrupt-controller;
++		#interrupt-cells = <1>;
++
++		/* GSC watchdog */
++		watchdog {
++			compatible = "gw,gsc_wdt";
++			status = "okay";
++		};
++
++		/* Linux input events from GSC interrupt events */
++		input {
++			compatible = "gw,gsc_input";
++			interrupt-parent = <&gsc>;
++			interrupts = <0 1 2 5 7>;
++			interrupt-names = "button", "key-erased", "eeprom-wp", "tamper", "button-held";
++			status = "okay";
++		};
++	};
++
++	gsc_gpio: pca9555@23 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x23>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
++		interrupt-parent = <&gsc>;
++		interrupts = <4>;
+ 	};
+ 
+-	hwmon: gsc@29 {
++	gsc_hwmon: hwmon@29 {
+ 		compatible = "gw,gsp";
+ 		reg = <0x29>;
+ 	};
+ 
+-	rtc: ds1672@68 {
++	gsc_rtc: ds1672@68 {
+ 		compatible = "dallas,ds1672";
+ 		reg = <0x68>;
+ 	};
+--- a/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+@@ -195,19 +195,45 @@
+ 		pagesize = <16>;
+ 	};
+ 
+-	gpio: pca9555@23 {
++	gsc: gsc@20 {
++		compatible = "gw,gsc";
++		reg = <0x20>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <4 1>;
++		interrupt-controller;
++		#interrupt-cells = <1>;
++
++		/* GSC watchdog */
++		watchdog {
++			compatible = "gw,gsc_wdt";
++			status = "okay";
++		};
++
++		/* Linux input events from GSC interrupt events */
++		input {
++			compatible = "gw,gsc_input";
++			interrupt-parent = <&gsc>;
++			interrupts = <0 1 2 5 7>;
++			interrupt-names = "button", "key-erased", "eeprom-wp", "tamper", "button-held";
++			status = "okay";
++		};
++	};
++
++	gsc_gpio: pca9555@23 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x23>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
++		interrupt-parent = <&gsc>;
++		interrupts = <4>;
+ 	};
+ 
+-	hwmon: gsc@29 {
++	gsc_hwmon: hwmon@29 {
+ 		compatible = "gw,gsp";
+ 		reg = <0x29>;
+ 	};
+ 
+-	rtc: ds1672@68 {
++	gsc_rtc: ds1672@68 {
+ 		compatible = "dallas,ds1672";
+ 		reg = <0x68>;
+ 	};
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -185,19 +185,45 @@
+ 		pagesize = <16>;
+ 	};
+ 
+-	gpio: pca9555@23 {
++	gsc: gsc@20 {
++		compatible = "gw,gsc";
++		reg = <0x20>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <4 1>;
++		interrupt-controller;
++		#interrupt-cells = <1>;
++
++		/* GSC watchdog */
++		watchdog {
++			compatible = "gw,gsc_wdt";
++			status = "okay";
++		};
++
++		/* Linux input events from GSC interrupt events */
++		input {
++			compatible = "gw,gsc_input";
++			interrupt-parent = <&gsc>;
++			interrupts = <0 1 2 5 7>;
++			interrupt-names = "button", "key-erased", "eeprom-wp", "tamper", "button-held";
++			status = "okay";
++		};
++	};
++
++	gsc_gpio: pca9555@23 {
+ 		compatible = "nxp,pca9555";
+ 		reg = <0x23>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
++		interrupt-parent = <&gsc>;
++		interrupts = <4>;
+ 	};
+ 
+-	hwmon: gsc@29 {
++	gsc_hwmon: hwmon@29 {
+ 		compatible = "gw,gsp";
+ 		reg = <0x29>;
+ 	};
+ 
+-	rtc: ds1672@68 {
++	gsc_rtc: ds1672@68 {
+ 		compatible = "dallas,ds1672";
+ 		reg = <0x68>;
+ 	};
