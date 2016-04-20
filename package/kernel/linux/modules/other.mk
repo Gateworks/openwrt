@@ -40,6 +40,7 @@ define KernelPackage/bluetooth
 	CONFIG_BLUEZ_HCIUSB \
 	CONFIG_BLUEZ_HIDP \
 	CONFIG_BT \
+	CONFIG_BT_ATH3K \
 	CONFIG_BT_L2CAP=y \
 	CONFIG_BT_SCO=y \
 	CONFIG_BT_RFCOMM \
@@ -48,6 +49,7 @@ define KernelPackage/bluetooth
 	CONFIG_BT_HCIUSB \
 	CONFIG_BT_HCIUART \
 	CONFIG_BT_HCIUART_H4 \
+	CONFIG_BT_HCIUART_ATH3K=y \
 	CONFIG_BT_HIDP \
 	CONFIG_HID_SUPPORT=y
   $(call AddDepends/crc16)
@@ -59,8 +61,9 @@ define KernelPackage/bluetooth
 	$(LINUX_DIR)/net/bluetooth/bnep/bnep.ko \
 	$(LINUX_DIR)/net/bluetooth/hidp/hidp.ko \
 	$(LINUX_DIR)/drivers/bluetooth/hci_uart.ko \
-	$(LINUX_DIR)/drivers/bluetooth/btusb.ko
-  AUTOLOAD:=$(call AutoProbe,bluetooth rfcomm bnep hidp hci_uart btusb)
+	$(LINUX_DIR)/drivers/bluetooth/btusb.ko \
+	$(LINUX_DIR)/drivers/bluetooth/ath3k.ko
+  AUTOLOAD:=$(call AutoProbe,bluetooth rfcomm bnep hidp hci_uart btusb ath3k)
 endef
 
 define KernelPackage/bluetooth/description
