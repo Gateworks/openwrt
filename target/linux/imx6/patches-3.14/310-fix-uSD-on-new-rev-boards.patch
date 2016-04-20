@@ -1,0 +1,36 @@
+Index: linux-3.14.16/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi
+===================================================================
+--- linux-3.14.16.orig/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi	2015-11-16 16:18:58.461893882 -0800
++++ linux-3.14.16/arch/arm/boot/dts/imx6qdl-gw52xx.dtsi	2015-11-16 16:25:47.601895860 -0800
+@@ -426,7 +426,6 @@
+ 				MX6QDL_PAD_NANDF_WP_B__NAND_WP_B	0xb0b1
+ 				MX6QDL_PAD_NANDF_RB0__NAND_READY_B	0xb000
+ 				MX6QDL_PAD_NANDF_CS0__NAND_CE0_B	0xb0b1
+-				MX6QDL_PAD_NANDF_CS1__NAND_CE1_B	0xb0b1
+ 				MX6QDL_PAD_SD4_CMD__NAND_RE_B		0xb0b1
+ 				MX6QDL_PAD_SD4_CLK__NAND_WE_B		0xb0b1
+ 				MX6QDL_PAD_NANDF_D0__NAND_DATA00	0xb0b1
+Index: linux-3.14.16/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi
+===================================================================
+--- linux-3.14.16.orig/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi	2015-11-16 16:18:58.461893882 -0800
++++ linux-3.14.16/arch/arm/boot/dts/imx6qdl-gw53xx.dtsi	2015-11-16 16:25:59.305895916 -0800
+@@ -451,7 +451,6 @@
+ 				MX6QDL_PAD_NANDF_WP_B__NAND_WP_B	0xb0b1
+ 				MX6QDL_PAD_NANDF_RB0__NAND_READY_B	0xb000
+ 				MX6QDL_PAD_NANDF_CS0__NAND_CE0_B	0xb0b1
+-				MX6QDL_PAD_NANDF_CS1__NAND_CE1_B	0xb0b1
+ 				MX6QDL_PAD_SD4_CMD__NAND_RE_B		0xb0b1
+ 				MX6QDL_PAD_SD4_CLK__NAND_WE_B		0xb0b1
+ 				MX6QDL_PAD_NANDF_D0__NAND_DATA00	0xb0b1
+Index: linux-3.14.16/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+===================================================================
+--- linux-3.14.16.orig/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi	2015-11-16 16:18:58.461893882 -0800
++++ linux-3.14.16/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi	2015-11-16 16:26:11.129895973 -0800
+@@ -473,7 +473,6 @@
+ 				MX6QDL_PAD_NANDF_WP_B__NAND_WP_B	0xb0b1
+ 				MX6QDL_PAD_NANDF_RB0__NAND_READY_B	0xb000
+ 				MX6QDL_PAD_NANDF_CS0__NAND_CE0_B	0xb0b1
+-				MX6QDL_PAD_NANDF_CS1__NAND_CE1_B	0xb0b1
+ 				MX6QDL_PAD_SD4_CMD__NAND_RE_B		0xb0b1
+ 				MX6QDL_PAD_SD4_CLK__NAND_WE_B		0xb0b1
+ 				MX6QDL_PAD_NANDF_D0__NAND_DATA00	0xb0b1
