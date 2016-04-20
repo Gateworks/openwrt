@@ -809,7 +809,7 @@ static void __init laguna_init(void)
 
 	platform_device_register(&laguna_i2c_controller);
 
-	/* Set ext_int 0-3 drive strength to 21 mA */
+	/* Set I2C 0-3 drive strength to 21 mA */
 	reg = MISC_IO_PAD_DRIVE_STRENGTH_CTRL_B;
 	*reg |= 0x300;
 
@@ -817,9 +817,8 @@ static void __init laguna_init(void)
 	reg = MISC_GPIOB_PIN_ENABLE_REG;
 	*reg |= BIT(12) | BIT(13);
 
-	/* Enable MMC/SD pins */
-	reg = MISC_GPIOA_PIN_ENABLE_REG;
-	*reg |= 0xf80;
+	/* Enable SPI pins */
+	*reg |= BIT(7) | BIT(8) | BIT(9) | BIT(10) | BIT(11);
 
 	cns3xxx_pwr_clk_en(1 << PM_CLK_GATE_REG_OFFSET_SPI_PCM_I2C);
 	cns3xxx_pwr_power_up(1 << PM_CLK_GATE_REG_OFFSET_SPI_PCM_I2C);
