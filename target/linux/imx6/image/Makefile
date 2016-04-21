@@ -144,6 +144,8 @@ define Device/ventana
 		imx6q-gw552x \
 		imx6q-gw553x \
 		imx6q-gw560x \
+		imx6q-gw5901 \
+		imx6q-gw5902 \
 		imx6q-gw5904
 	DEVICE_DTS_SYMLINK := \
 		"imx6q-gw552x:imx6q-gw5906" \
