@@ -1,0 +1,20 @@
+--- a/drivers/input/misc/Kconfig
++++ b/drivers/input/misc/Kconfig
+@@ -815,4 +815,10 @@ config INPUT_DRV2667_HAPTICS
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called drv2667-haptics.
+ 
++config INPUT_LSM9DS1
++	tristate "STMicroelectronics LSM9DS1"
++	depends on INPUT
++	help
++	  Say Y here to enable STMicroelectronics LSM9DS1 inertial module.
++
+ endif
+--- a/drivers/input/misc/Makefile
++++ b/drivers/input/misc/Makefile
+@@ -77,3 +77,4 @@ obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x
+ obj-$(CONFIG_INPUT_XEN_KBDDEV_FRONTEND)	+= xen-kbdfront.o
+ obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
+ obj-$(CONFIG_INPUT_IDEAPAD_SLIDEBAR)	+= ideapad_slidebar.o
++obj-$(CONFIG_INPUT_LSM9DS1)		+= lsm9ds1_mag.o lsm9ds1_acc_gyr.o

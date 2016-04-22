@@ -241,3 +241,22 @@ define KernelPackage/input-mma8451/description
 endef
 
 $(eval $(call KernelPackage,input-mma8451))
+
+
+define KernelPackage/input-lsm9ds1
+  SUBMENU:=$(INPUT_MODULES_MENU)
+  TITLE:=LSM9DS1 9DOF IMU input device driver
+  DEPENDS:=@(TARGET_imx6) +kmod-i2c-core +kmod-input-polldev
+  KCONFIG:=CONFIG_INPUT_LSM9DS1
+  FILES:=\
+    $(LINUX_DIR)/drivers/input/misc/lsm9ds1_acc_gyr.ko \
+    $(LINUX_DIR)/drivers/input/misc/lsm9ds1_mag.ko
+  AUTOLOAD:=$(call AutoProbe,lsm9ds1_acc_gyr lsm9ds1_mag)
+  $(call AddDepends/input)
+endef
+
+define KernelPackage/input-lsm9ds1/description
+ LSM9DS1 9DOF IMU device driver
+endef
+
+$(eval $(call KernelPackage,input-lsm9ds1))
