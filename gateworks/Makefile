@@ -27,7 +27,7 @@ setup:
 	fi
 
 	@printf "Updating Feeds...\n"
-	@make -C $(OPENWRT) defconfig &>/dev/null # first pkg feed update req's this
+	@make -C $(OPENWRT) defconfig # first pkg feed update req's this
 	make -C $(OPENWRT)/ package/symlinks || test 0
 
 define make-profile
