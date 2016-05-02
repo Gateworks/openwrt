@@ -280,6 +280,13 @@ define Image/mkfs/prepare
 	$(call Image/mkfs/prepare/default)
 endef
 
+define Image/Manifest
+	$(STAGING_DIR_HOST)/bin/opkg \
+		--offline-root $(TARGET_DIR) \
+		--add-arch all:100 \
+		--add-arch $(if $(ARCH_PACKAGES),$(ARCH_PACKAGES),$(BOARD)):200 list-installed > \
+		$(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)).manifest
+endef
 
 define Image/Checksum
 	( cd ${BIN_DIR} ; \
@@ -592,6 +599,7 @@ define BuildImage
 		$(call Image/Build,$(fs))
 	)
 	$(call Image/mkfs/ubifs)
+	$(call Image/Manifest)
 	$(call Image/Checksum,md5sum --binary,md5sums)
 	$(call Image/Checksum,openssl dgst -sha256,sha256sums)
 
