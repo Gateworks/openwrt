@@ -352,7 +352,9 @@
 +			platform_device_register(&laguna_gpio_leds_device);
 +			platform_device_register(&laguna_gsc_input);
 +			platform_device_register(&laguna_keys_device);
- 		} else if (strncmp(laguna_info.model, "GW2384", 6) == 0) {
+ 		} else if ( (strncmp(laguna_info.model, "GW2384", 6) == 0)
+ 			 || (strncmp(laguna_info.model, "GW2394", 6) == 0) )
+		{
 -			// configure GPIO's
 +			// GSC
 +			laguna_keys[0].gpio = 100;
