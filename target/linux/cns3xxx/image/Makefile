@@ -9,6 +9,10 @@ include $(INCLUDE_DIR)/image.mk
 
 define Image/Prepare
 	mkimage -A arm -O linux -T kernel -C none -a 0x20008000 -e 0x20008000 -n 'OpenWrt Linux-$(LINUX_VERSION)' -d $(KDIR)/zImage $(KDIR)/uImage
+	@if [ `stat -c%s "$(KDIR)/uImage"` -gt `expr 2048 \* 1024` ]; then \
+		echo "Error: Kernel is too big" >&2; \
+		exit 1; \
+	fi
 endef
 
 # Build sysupgrade image
@@ -55,7 +59,7 @@ define Image/Build/squashfs
 	dd if=$(KDIR)/root.$(1) bs=128k conv=sync; \
 	) > $(BIN_DIR)/$(IMG_PREFIX)-$(1)_laguna_nor.bin
 	( \
-	dd if=$(KDIR)/uImage bs=1536k conv=sync; \
+	dd if=$(KDIR)/uImage bs=2048k conv=sync; \
 	dd if=$(KDIR)/root.$(1) bs=256k conv=sync; \
 	) > $(BIN_DIR)/$(IMG_PREFIX)-$(1)_laguna_spi.bin
 endef
