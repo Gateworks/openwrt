@@ -7,10 +7,7 @@
 # Model definitions: defines bootloader/kernel/rootfs partitioning scheme
 #   These are user preferences - create custom mappings as needed
 #
-#MODEL_<name>=<arch>:<flash_size>:<kernel_off>:<rootfs_off>:<variant>
-#    u-boot size = kernel_boundary
-#    kernel size = rootfs_boundary - kernel_boundary
-#    rootfs size = flash_size - rootfs_boundary
+#MODEL_<name>=<arch>:<default_flash_size>:<kernel_off>:<variant>
 #
 MODEL_laguna_spi=cns3xxx:16M:512k:spi
 MODEL_laguna_nor=cns3xxx:16M:384k:nor
@@ -63,21 +60,12 @@ eval details=\$MODEL_${PROD}
 TARGET=${details%%:*}; details=${details#*:}
 SIZE=${details%%:*}; details=${details#*:}
 KERNEL_BOUNDARY=${details%%:*}; details=${details#*:}
-ROOTFS_BOUNDARY=${details%%:*}; details=${details#*:}
 VARIANT=${details%%:*}; details=${details#*:}
 [ "$4" ] && SIZE=$4
 
 case "$TARGET" in
 	cns3xxx)
-		PREFIX="openwrt"
-		KERNEL=$OPENWRT/bin/$TARGET/${PREFIX}-${TARGET}-squashfs_laguna_$VARIANT.bin
-		[ ! -e "${KERNEL}" ] && PREFIX="gateworks"
-		KERNEL=$OPENWRT/bin/$TARGET/${PREFIX}-${TARGET}-squashfs_laguna_$VARIANT.bin
-		ROOTFS=
-		;;
-	*)
-		KERNEL=$OPENWRT/bin/$TARGET/openwrt-${TARGET}-uImage
-		ROOTFS=$OPENWRT/bin/$TARGET/openwrt-${TARGET}-squashfs.img
+		KERNEL=$OPENWRT/bin/$TARGET/gateworks-${TARGET}-squashfs_laguna_$VARIANT.bin
 		;;
 esac
 
@@ -88,27 +76,10 @@ echo "Flash :$SIZE"
 [ "$VARIANT" ] && echo "Variant=$VARIANT"
 size=$KERNEL_BOUNDARY
 echo "u-boot:$UBOOT $(fsize $UBOOT)@0 ($size)"
-if [ $ROOTFS ]; then
-  size=$(( $(bytes $ROOTFS_BOUNDARY) - $(bytes $KERNEL_BOUNDARY)))
-  echo "kernel:$KERNEL $(fsize $KERNEL)@$KERNEL_BOUNDARY ($((size/1024))k)"
-  size=$(( $(bytes $SIZE) - $(bytes $ROOTFS_BOUNDARY)))
-  echo "rootfs:$ROOTFS $(fsize $ROOTFS)@$ROOTFS_BOUNDARY ($((size/1024))k)"
-  # sanity checks
-  [ "$TARGET" -a "$SIZE" -a -r "$KERNEL" -a -r "$ROOTFS" -a -r "$UBOOT" ] || usage
-  # make sure kernel fits within its boundary
-  a=$(( $(bytes $ROOTFS_BOUNDARY) - $(bytes $KERNEL_BOUNDARY) ))
-  b=$(bytes $(fsize $KERNEL) )
-  [ $b -gt $a ] && {
-   echo "kernel too big ($b > $a)"
-   exit 3
-  }
-else
-  size=$(( $(bytes $SIZE) - $(bytes $KERNEL_BOUNDARY)))
-  echo "kernel+rootfs:$KERNEL $(fsize $KERNEL)@$KERNEL_BOUNDARY ($((size/1024))k)"
-  # sanity checks
-  [ "$TARGET" -a "$SIZE" -a -r "$KERNEL" -a -r "$UBOOT" ] || usage
-fi
-
+size=$(( $(bytes $SIZE) - $(bytes $KERNEL_BOUNDARY)))
+echo "kernel+rootfs:$KERNEL $(fsize $KERNEL)@$KERNEL_BOUNDARY ($((size/1024))k)"
+# sanity checks
+[ "$TARGET" -a "$SIZE" -a -r "$KERNEL" -a -r "$UBOOT" ] || usage
 
 # create padded blank image
 SIZEM="$(echo -n $SIZE | tr -d M)"
@@ -117,14 +88,7 @@ tr "\000" "\377" < /dev/zero | dd bs=1k count=${SIZEM}k of=$PROD.bin 2>/dev/null
 dd if=$UBOOT of=uboot.bin.$$ bs=$KERNEL_BOUNDARY conv=sync 2>/dev/null
 # append kernel
 cat $KERNEL >> uboot.bin.$$
-if [ $ROOTFS ]; then
-  # pad u-boot+kernel to rootfs boundary
-  dd if=uboot.bin.$$ of=image.bin.$$ bs=$ROOTFS_BOUNDARY conv=sync 2>/dev/null
-  # append rootfs
-  cat $ROOTFS >> image.bin.$$
-else
-	cp uboot.bin.$$ image.bin.$$
-fi
+cp uboot.bin.$$ image.bin.$$
 # copy image into padded file
 dd if=image.bin.$$ of=$PROD.bin conv=notrunc 2>/dev/null
 # cleanup tmpfiles
