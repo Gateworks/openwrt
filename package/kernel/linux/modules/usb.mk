@@ -286,6 +286,45 @@ endef
 $(eval $(call KernelPackage,usb-g_mass-storage))
 
 
+define KernelPackage/usb-g_hid
+  TITLE:=USB HID Gadget
+  KCONFIG:=CONFIG_USB_G_HID
+  DEPENDS:=kmod-usb-gadget +kmod-fs-configfs
+  FILES:= \
+	$(LINUX_DIR)/drivers/usb/gadget/libcomposite.ko \
+	$(LINUX_DIR)/drivers/usb/gadget/function/usb_f_hid.ko \
+	$(LINUX_DIR)/drivers/usb/gadget/legacy/g_hid.ko
+  AUTOLOAD:=$(call AutoLoad,52,usb_f_hid g_hid)
+  $(call AddDepends/usb)
+endef
+
+define KernelPackage/usb-g_hid/description
+  Kernel support for USB HID Gadget
+endef
+
+$(eval $(call KernelPackage,usb-g_hid))
+
+
+define KernelPackage/usb-g_ncm
+  TITLE:=USB CDC Ethernet (NCM)
+  KCONFIG:=CONFIG_USB_G_NCM
+  DEPENDS:=kmod-usb-gadget +kmod-fs-configfs
+  FILES:= \
+	$(LINUX_DIR)/drivers/usb/gadget/libcomposite.ko \
+	$(LINUX_DIR)/drivers/usb/gadget/function/u_ether.ko \
+	$(LINUX_DIR)/drivers/usb/gadget/function/usb_f_ncm.ko \
+	$(LINUX_DIR)/drivers/usb/gadget/legacy/g_ncm.ko
+  AUTOLOAD:=$(call AutoLoad,52,usb_f_ncm g_ncm)
+  $(call AddDepends/usb)
+endef
+
+define KernelPackage/usb-g_ncm/description
+  Kernel support for USB CDC NCM gadget
+endef
+
+$(eval $(call KernelPackage,usb-g_ncm))
+
+
 define KernelPackage/usb-uhci
   TITLE:=Support for UHCI controllers
   KCONFIG:= \
