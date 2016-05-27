@@ -60,6 +60,5 @@ int gsc_i2c_read(u8 reg, u8 *val);
 int gsc_i2c_update(u8 reg, u8 valmask, u8 val);
 
 int gsc_get_fwver(void);
-int gsc_powerdown(unsigned long seconds);
 
 #endif
