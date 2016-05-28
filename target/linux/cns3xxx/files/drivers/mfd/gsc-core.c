@@ -21,6 +21,7 @@
 #include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
+#include <linux/reboot.h>
 
 #include "gsc-core.h"
 
@@ -51,6 +52,7 @@ struct gsc {
 	struct platform_device *gsc;
 	struct platform_device *wdt;
 	struct platform_device *input;
+	struct notifier_block restart_handler;
 };
 
 static struct gsc *gsc_priv;
@@ -244,16 +246,13 @@ EXPORT_SYMBOL_GPL(gsc_get_fwver);
  *
  * secs - number of seconds to remain powered off
  */
-int gsc_powerdown(unsigned long secs)
+static int gsc_powerdown(struct gsc *gsc, unsigned long secs)
 {
 	int ret;
 
-	if (!gsc_priv)
-		return -ENODEV;
-
-	dev_info(&gsc_priv->client->dev, "GSC powerdown for %ld seconds\n",
+	dev_info(&gsc->client->dev, "GSC powerdown for %ld seconds\n",
 		 secs);
-	mutex_lock(&gsc_priv->io_lock);
+	mutex_lock(&gsc->io_lock);
 	ret = __gsc_i2c_write(GSC_TIME_ADD + 0, secs & 0xff);
 	if (ret)
 		goto done;
@@ -277,9 +276,19 @@ int gsc_powerdown(unsigned long secs)
 	ret = 0;
 
 done:
-	mutex_unlock(&gsc_priv->io_lock);
+	mutex_unlock(&gsc->io_lock);
 
 	return ret;
+}
+
+static int gsc_restart_handler(struct notifier_block *this, unsigned long mode,
+			       void *cmd)
+{
+	struct gsc *gsc = container_of(this, struct gsc, restart_handler);
+
+	gsc_powerdown(gsc, 1);
+
+	return NOTIFY_DONE;
 }
 
 /*----------------------------------------------------------------------*/
@@ -306,15 +315,16 @@ static ssize_t gsc_show(struct device *dev, struct device_attribute *attr,
 static ssize_t gsc_store(struct device *dev, struct device_attribute *attr,
 			 const char *buf, size_t count)
 {
+	struct gsc *gsc = dev_get_drvdata(dev);
 	const char *name = attr->attr.name;
 	int ret;
 
 	if (strcasecmp(name, "powerdown") == 0) {
 		long value;
 
-		ret = kstrtoul(buf, 0, &value);
+		ret = kstrtol(buf, 0, &value);
 		if (ret == 0)
-			gsc_powerdown(value);
+			gsc_powerdown(gsc, value);
 	} else
 		printk(KERN_ERR "invalid name '%s\n", name);
 
@@ -393,6 +403,12 @@ gsc_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	i2c_set_clientdata(client, gsc);
 	gsc->dev = &client->dev;
 
+	gsc->restart_handler.notifier_call = gsc_restart_handler;
+	gsc->restart_handler.priority = 255;
+	ret = register_restart_handler(&gsc->restart_handler);
+	if (ret)
+		dev_err(dev, "cannot register restart handler\n");
+
 	ret = sysfs_create_group(&client->dev.kobj, &attr_group);
 	if (ret)
 		dev_err(dev, "failed to create sysfs attrs\n");
@@ -411,6 +427,7 @@ static int gsc_remove(struct i2c_client *client)
 	struct gsc *gsc = i2c_get_clientdata(client);
 
 	sysfs_remove_group(&client->dev.kobj, &attr_group);
+	unregister_restart_handler(&gsc->restart_handler);
 	mfd_remove_devices(gsc->dev);
 	gsc_priv = NULL;
 

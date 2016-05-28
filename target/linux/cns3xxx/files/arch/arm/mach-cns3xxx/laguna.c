@@ -1079,5 +1079,7 @@ MACHINE_START(GW2388, "Gateworks Corporation Laguna Platform")
 	.init_irq	= cns3xxx_init_irq,
 	.init_time	= cns3xxx_timer_init,
 	.init_machine	= laguna_init,
+#ifndef CONFIG_GSC_CORE
 	.restart	= cns3xxx_restart,
+#endif
 MACHINE_END

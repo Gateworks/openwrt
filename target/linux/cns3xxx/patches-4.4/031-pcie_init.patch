@@ -24,10 +24,11 @@
  static int __init laguna_model_setup(void)
  {
  	u32 __iomem *mem;
-@@ -1077,5 +1067,6 @@ MACHINE_START(GW2388, "Gateworks Corpora
+@@ -1079,6 +1069,7 @@ MACHINE_START(GW2388, "Gateworks Corpora
  	.init_irq	= cns3xxx_init_irq,
  	.init_time	= cns3xxx_timer_init,
  	.init_machine	= laguna_init,
 +	.init_late      = cns3xxx_pcie_init_late,
+ #ifndef CONFIG_GSC_CORE
  	.restart	= cns3xxx_restart,
- MACHINE_END
+ #endif
