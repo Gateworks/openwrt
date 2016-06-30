@@ -69,6 +69,7 @@ case "$TARGET" in
 		;;
 esac
 
+#KERNEL=$OPENWRT/bin/cns3xxx/openwrt-cns3xxx-initramfs-uImage
 
 echo "Model :$PROD"
 echo "Target:$TARGET"
