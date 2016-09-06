@@ -19,7 +19,7 @@
 
 ## Code:
 # unset specific global variables
-unset tmp_mnt FILES BLOCK_DEV
+unset tmp_mnt FILES BLOCK_DEV SPL BOOTLOADER UBOOTENV cmds_not_found
 
 # Cleanup tmp files
 cleanup() {
@@ -78,9 +78,12 @@ usage() {
     local ec="${1:-0}"
     local p="${0##*/}"
 
-    printf "usage: %s\n\n" \
-           "${p} file1.tar[.gz|.bz2] [file2.tar[.gz|.bz2] ...] /dev/sdX"
-    printf "The following block devices were found:\n"
+    printf "%s\n" \
+           "Usage: " \
+           "${p} /dev/sdX file1.tar[.gz|.bz2] [file2.tar[.gz|.bz2] ...] [<SPL> <u-boot.img> [env]]" ""\
+           "Note that paths given for optional arguments SPL & u-boot.img must point to files " \
+           "using the same name (case sensitive) and are codependent." "" \
+           "The following block devices were found:"
     print_devs
 
     exit ${ec}
@@ -94,17 +97,32 @@ while [ "${1}" ]; do
             [ ! -r "${1}" ] && printerr "'${1}' is not a readable file, skip\n"
             [ -r "${1}" ] && FILES="${FILES} ${1}"
             ;;
-        /dev/*) BLOCK_DEV="${1}"; break;;
-        *) printerr "'${1}' is not a valid file, skip\n";;
+        /dev/*) BLOCK_DEV="${1}";;
+        *SPL*) SPL="${1}";;
+        *u-boot*.img) BOOTLOADER="${1}";;
+        *env) UBOOTENV="${1}";;
+        *) printerr "'${1}' is not a valid argument, skipping\n";;
     esac
     shift
 done
 # validate input
 [ ! "${FILES}" -o ! "${BLOCK_DEV}" ] && usage 1
 
-cmds_not_found=
-for cmd in readlink awk grep cat tar mktemp mount umount sfdisk mkfs.ext4; do
-    command -v ${cmd} &>/dev/null
+# validate that both or neither of SPL/BOOTLOADER are passed
+[ -z "$SPL" -a -z "$BOOTLOADER" ] || [ "$SPL" -a "$BOOTLOADER" ] || {
+    printerr "Must pass in both a SPL & u-boot.img file, or neither\n"
+    usage 1
+}
+
+[ "$SPL" -a "$BOOTLOADER" ] && {
+    # verify file paths of SPL and u-boot.img
+    for i in $SPL $BOOTLOADER; do
+       [ -f "$i" ] || printerr "file not found: $i\n"
+    done
+}
+
+for cmd in blockdev readlink awk grep cat tar mktemp mount umount sfdisk mkfs.ext4; do
+    which ${cmd} 2>&1 >/dev/null
     [ $? -ne 0 ] && cmds_not_found="${cmds_not_found} '${cmd}'"
 done
 [ "${cmds_not_found}" ] && {
@@ -151,13 +169,32 @@ fi
     exit 7
 }
 
-# Destroy MBR
-dd if=/dev/zero of=${BLOCK_DEV} count=1 bs=1M
+[ "$SPL" -a "$BOOTLOADER" ] && {
+    echo "Installing SPL & U-Boot"
+    # Write SPL (at 1KB offset)
+    echo "  installing SPL @ 1K offset..."
+    dd if=$SPL of=$BLOCK_DEV bs=1K seek=1 oflag=sync status=none || \
+        printerr "installation failed, bailing\n"
 
+    # Write UBOOT (at 69K offset)
+    echo "  installing UBOOT @ 69K offset..."
+    dd if=$BOOTLOADER of=$BLOCK_DEV bs=1K seek=69 oflag=sync status=none || \
+        printerr "installation failed, bailing\n"
+
+    # Write ENV (at 709KB offset) if present
+    [ "$UBOOTENV" -a -r "$UBOOTENV" ] && {
+      echo "  installing ENV @ 709K offset..."
+      dd if=$UBOOTENV of=$BLOCK_DEV bs=1K seek=709 oflag=sync status=none || \
+          printerr "installation failed, bailing\n"
+    }
+    sync
+}
+
+echo "Partitioning..."
 # Create partitions
-# 1:rootfs ext4 (remainder)
-sfdisk -L -uM ${BLOCK_DEV} <<EOF
-,,83,*
+# 1:rootfs ext4 (skip first MiB for SPL and bootloader)
+sfdisk --force --quiet --no-reread -uS ${BLOCK_DEV} <<EOF
+2048,,L,*
 EOF
 [ $? -ne 0 ] && {
     printerr "sfdisk failed, bailing\n"
@@ -165,9 +202,11 @@ EOF
 }
 sync
 
+blockdev --rereadpt ${BLOCK_DEV}
+
 # Create fs
 printf "Creating ext4 filesystem on ${BLOCK_DEV}1...\n"
-mkfs.ext4 -q -L rootfs ${BLOCK_DEV}1
+mkfs.ext4 -q -F -L rootfs ${BLOCK_DEV}1 1>/dev/null
 [ $? -ne 0 ] && {
     printerr "mkfs.ext4 failed, bailing\n"
     exit 9
@@ -178,8 +217,8 @@ tmp_mnt=$(mktemp -d -p/tmp)
 mount ${BLOCK_DEV}1 ${tmp_mnt}
 
 for file in ${FILES}; do
-    printf "Extracting: ${file}\n"
-    tar -xvf ${file} -C ${tmp_mnt}
+    printf "Extracting ${file}, please wait...\n"
+    tar -xf ${file} -C ${tmp_mnt}
 done
 
 tot=$(du -shc ${tmp_mnt} | cut -d' ' -f1 | tail -n1)
