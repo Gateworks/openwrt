@@ -20,8 +20,11 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/compiler.h>
+#include <linux/input.h>
 #include <linux/io.h>
+#include <linux/irq.h>
 #include <linux/gpio.h>
+#include <linux/gpio_keys.h>
 #include <linux/dma-mapping.h>
 #include <linux/serial_core.h>
 #include <linux/serial_8250.h>
@@ -611,7 +614,7 @@ static struct at24_platform_data laguna_eeprom_info = {
 
 static struct pca953x_platform_data laguna_pca_data = {
  	.gpio_base = 100,
-	.irq_base = -1,
+	.irq_base = 168,
 };
 
 static struct pca953x_platform_data laguna_pca2_data = {
@@ -619,15 +622,25 @@ static struct pca953x_platform_data laguna_pca2_data = {
 	.irq_base = -1,
 };
 
+static struct i2c_board_info gscgpio_i2cinfo = {
+	I2C_BOARD_INFO("pca9555", 0x23),
+	.platform_data = &laguna_pca_data,
+	.irq = 164, /* GSC irq4 */
+};
+
+static struct i2c_board_info pca2_i2cinfo = {
+	I2C_BOARD_INFO("pca9555", 0x27),
+	.platform_data = &laguna_pca2_data,
+};
+
+static struct i2c_board_info gsc_i2cinfo = {
+	I2C_BOARD_INFO("gsc", 0x20),
+	.irq = -1, /* assigned at runtime */
+};
+
 static struct i2c_board_info __initdata laguna_i2c_devices[] = {
 	{
-		I2C_BOARD_INFO("pca9555", 0x23),
-		.platform_data = &laguna_pca_data,
-	},{
-		I2C_BOARD_INFO("pca9555", 0x27),
-		.platform_data = &laguna_pca2_data,
-	},{
-		I2C_BOARD_INFO("gsp", 0x29),
+		I2C_BOARD_INFO("gsc_hwmon", 0x29),
 	},{
 		I2C_BOARD_INFO ("24c08",0x50),
 		.platform_data = &laguna_eeprom_info,
@@ -639,6 +652,11 @@ static struct i2c_board_info __initdata laguna_i2c_devices[] = {
 /*
  * Watchdog
  */
+
+static struct platform_device laguna_gsc_watchdog = {
+	.name	     = "gsc_wdt",
+	.id	     = 0,
+};
 
 static struct resource laguna_watchdog_resources[] = {
 	[0] = {
@@ -653,6 +671,14 @@ static struct platform_device laguna_watchdog = {
 	.id		= -1,
 	.num_resources	= ARRAY_SIZE(laguna_watchdog_resources),
 	.resource	= laguna_watchdog_resources,
+};
+
+/*
+ * GSC Input device
+ */
+static struct platform_device laguna_gsc_input = {
+	.name		= "gsc_input",
+	.id		= -1,
 };
 
 /*
@@ -677,14 +703,12 @@ static struct platform_device laguna_pps_device = {
 
 static struct gpio laguna_gpio_gw2391[] = {
 	{   0, GPIOF_IN           , "*GPS_PPS" },
-	{   1, GPIOF_IN           , "*GSC_IRQ#" },
 	{   2, GPIOF_IN           , "*USB_FAULT#" },
 	{   5, GPIOF_OUT_INIT_LOW , "*USB0_PCI_SEL" },
 	{   6, GPIOF_OUT_INIT_HIGH, "*USB_VBUS_EN" },
 	{   7, GPIOF_OUT_INIT_LOW , "*USB1_PCI_SEL" },
 	{   8, GPIOF_OUT_INIT_HIGH, "*PERST#" },
 	{   9, GPIOF_OUT_INIT_LOW , "*FP_SER_EN#" },
-	{ 100, GPIOF_IN           , "*USER_PB#" },
 	{ 103, GPIOF_OUT_INIT_HIGH, "*V5_EN" },
 	{ 108, GPIOF_IN           , "DIO0" },
 	{ 109, GPIOF_IN           , "DIO1" },
@@ -695,13 +719,11 @@ static struct gpio laguna_gpio_gw2391[] = {
 
 static struct gpio laguna_gpio_gw2388[] = {
 	{   0, GPIOF_IN           , "*GPS_PPS" },
-	{   1, GPIOF_IN           , "*GSC_IRQ#" },
 	{   3, GPIOF_IN           , "*USB_FAULT#" },
 	{   6, GPIOF_OUT_INIT_HIGH, "*USB_VBUS_EN" },
 	{   7, GPIOF_OUT_INIT_LOW , "*GSM_SEL0" },
 	{   8, GPIOF_OUT_INIT_LOW , "*GSM_SEL1" },
 	{   9, GPIOF_OUT_INIT_LOW , "*FP_SER_EN" },
-	{ 100, GPIOF_OUT_INIT_HIGH, "*USER_PB#" },
 	{ 108, GPIOF_IN           , "DIO0" },
 	{ 109, GPIOF_IN           , "DIO1" },
 	{ 110, GPIOF_IN           , "DIO2" },
@@ -711,14 +733,12 @@ static struct gpio laguna_gpio_gw2388[] = {
 
 static struct gpio laguna_gpio_gw2387[] = {
 	{   0, GPIOF_IN           , "*GPS_PPS" },
-	{   1, GPIOF_IN           , "*GSC_IRQ#" },
 	{   2, GPIOF_IN           , "*USB_FAULT#" },
 	{   5, GPIOF_OUT_INIT_LOW , "*USB_PCI_SEL" },
 	{   6, GPIOF_OUT_INIT_HIGH, "*USB_VBUS_EN" },
 	{   7, GPIOF_OUT_INIT_LOW , "*GSM_SEL0" },
 	{   8, GPIOF_OUT_INIT_LOW , "*GSM_SEL1" },
 	{   9, GPIOF_OUT_INIT_LOW , "*FP_SER_EN" },
-	{ 100, GPIOF_IN           , "*USER_PB#" },
 	{ 103, GPIOF_OUT_INIT_HIGH, "*V5_EN" },
 	{ 108, GPIOF_IN           , "DIO0" },
 	{ 109, GPIOF_IN           , "DIO1" },
@@ -728,8 +748,22 @@ static struct gpio laguna_gpio_gw2387[] = {
 	{ 113, GPIOF_IN           , "DIO5" },
 };
 
+static struct gpio laguna_gpio_gw2386[] = {
+	{   0, GPIOF_IN           , "*GPS_PPS" },
+	{   2, GPIOF_IN           , "*USB_FAULT#" },
+	{   6, GPIOF_OUT_INIT_LOW , "*USB_PCI_SEL" },
+	{   7, GPIOF_OUT_INIT_LOW , "*GSM_SEL0" },
+	{   8, GPIOF_OUT_INIT_LOW , "*GSM_SEL1" },
+	{   9, GPIOF_OUT_INIT_LOW , "*FP_SER_EN" },
+	{ 108, GPIOF_IN           , "DIO0" },
+	{ 109, GPIOF_IN           , "DIO1" },
+	{ 110, GPIOF_IN           , "DIO2" },
+	{ 111, GPIOF_IN           , "DIO3" },
+	{ 112, GPIOF_IN           , "DIO4" },
+	{ 113, GPIOF_IN           , "DIO5" },
+};
+
 static struct gpio laguna_gpio_gw2385[] = {
-	{   0, GPIOF_IN           , "*GSC_IRQ#" },
 	{   1, GPIOF_OUT_INIT_HIGH, "*USB_HST_VBUS_EN" },
 	{   2, GPIOF_IN           , "*USB_HST_FAULT#" },
 	{   5, GPIOF_IN           , "*USB_OTG_FAULT#" },
@@ -739,12 +773,10 @@ static struct gpio laguna_gpio_gw2385[] = {
 	{   9, GPIOF_OUT_INIT_LOW , "*SER_EN" },
 	{  10, GPIOF_IN,            "*USER_PB#" },
 	{  11, GPIOF_OUT_INIT_HIGH, "*PERST#" },
-	{ 100, GPIOF_IN           , "*USER_PB#" },
 	{ 103, GPIOF_OUT_INIT_HIGH, "V5_EN" },
 };
 
 static struct gpio laguna_gpio_gw2384[] = {
-	{   0, GPIOF_IN           , "*GSC_IRQ#" },
 	{   1, GPIOF_OUT_INIT_HIGH, "*USB_HST_VBUS_EN" },
 	{   2, GPIOF_IN           , "*USB_HST_FAULT#" },
 	{   5, GPIOF_IN           , "*USB_OTG_FAULT#" },
@@ -756,25 +788,21 @@ static struct gpio laguna_gpio_gw2384[] = {
 	{  13, GPIOF_OUT_INIT_HIGH, "*I2CMUX_RST#" },
 	{  14, GPIOF_OUT_INIT_LOW , "J10_DIOLED1" },
 	{  15, GPIOF_OUT_INIT_LOW , "J10_DIOLED2" },
-	{ 100, GPIOF_IN           , "*USER_PB#" },
 	{ 103, GPIOF_OUT_INIT_HIGH, "V5_EN" },
 	{ 108, GPIOF_IN           , "J9_DIOGSC0" },
 };
 
 static struct gpio laguna_gpio_gw2383[] = {
 	{   0, GPIOF_IN           , "*GPS_PPS" },
-	{   1, GPIOF_IN           , "*GSC_IRQ#" },
 	{   2, GPIOF_OUT_INIT_HIGH, "*PCIE_RST#" },
 	{   3, GPIOF_IN           , "GPIO0" },
 	{   8, GPIOF_IN           , "GPIO1" },
 	{ 100, GPIOF_IN           , "DIO0" },
 	{ 101, GPIOF_IN           , "DIO1" },
-	{ 108, GPIOF_IN           , "*USER_PB#" },
 };
 
 static struct gpio laguna_gpio_gw2382[] = {
 	{   0, GPIOF_IN           , "*GPS_PPS" },
-	{   1, GPIOF_IN           , "*GSC_IRQ#" },
 	{   2, GPIOF_OUT_INIT_HIGH, "*PCIE_RST#" },
 	{   3, GPIOF_IN           , "GPIO0" },
 	{   4, GPIOF_IN           , "GPIO1" },
@@ -782,19 +810,45 @@ static struct gpio laguna_gpio_gw2382[] = {
 	{  10, GPIOF_OUT_INIT_HIGH, "*USB_PCI_SEL#" },
 	{ 100, GPIOF_IN           , "DIO0" },
 	{ 101, GPIOF_IN           , "DIO1" },
-	{ 108, GPIOF_IN           , "*USER_PB#" },
 };
 
 static struct gpio laguna_gpio_gw2380[] = {
 	{   0, GPIOF_IN           , "*GPS_PPS" },
-	{   1, GPIOF_IN           , "*GSC_IRQ#" },
 	{   3, GPIOF_IN           , "GPIO0" },
 	{   8, GPIOF_IN           , "GPIO1" },
 	{ 100, GPIOF_IN           , "DIO0" },
 	{ 101, GPIOF_IN           , "DIO1" },
 	{ 102, GPIOF_IN           , "DIO2" },
 	{ 103, GPIOF_IN           , "DIO3" },
-	{ 108, GPIOF_IN           , "*USER_PB#" },
+};
+
+/*
+ * GPIO based buttons
+ */
+static struct gpio_keys_button laguna_keys[] = {
+	{
+		.type			= EV_KEY,
+		.active_low		= 1,
+		.wakeup			= 0,
+		.debounce_interval	= 100,
+		.desc			= "USER_PB#",
+		.code			= BTN_0,
+		.gpio			= -1, /* assigned at runtime */
+	},
+};
+
+static struct gpio_keys_platform_data laguna_keys_pdata = {
+	.buttons = laguna_keys,
+	.nbuttons = ARRAY_SIZE(laguna_keys),
+	.poll_interval = 100,
+};
+
+static struct platform_device laguna_keys_device = {
+	.name = "gpio-keys-polled",
+	.id = 0,
+	.dev = {
+		.platform_data = &laguna_keys_pdata
+	},
 };
 
 /*
@@ -810,9 +864,13 @@ static void __init laguna_init(void)
 				      cns3xxx_cpu_clock() * (1000000 / 8));
 	clk_register_clkdev(clk, "cpu", NULL);
 
-	platform_device_register(&laguna_watchdog);
-
 	platform_device_register(&laguna_i2c_controller);
+
+	/* GPIO controllers */
+	cns3xxx_gpio_init(0, 32, CNS3XXX_GPIOA_BASE_VIRT, IRQ_CNS3XXX_GPIOA,
+			  NR_IRQS_CNS3XXX);
+	cns3xxx_gpio_init(32, 32, CNS3XXX_GPIOB_BASE_VIRT, IRQ_CNS3XXX_GPIOB,
+			  NR_IRQS_CNS3XXX + 32);
 
 	/* Set I2C 0-3 drive strength to 21 mA */
 	reg = MISC_IO_PAD_DRIVE_STRENGTH_CTRL_B;
@@ -849,7 +907,6 @@ static struct map_desc laguna_io_desc[] __initdata = {
 static void __init laguna_map_io(void)
 {
 	cns3xxx_map_io();
-	cns3xxx_pcie_iotable_init();
 	iotable_init(ARRAY_AND_SIZE(laguna_io_desc));
 	laguna_early_serial_setup();
 }
@@ -873,14 +930,46 @@ static int laguna_register_gpio(struct gpio *array, size_t num)
 	return ret;
 }
 
-static int __init laguna_pcie_init(void)
+/* allow disabling of external isolated PCIe IRQs */
+static int cns3xxx_pciextirq = 1;
+static int __init cns3xxx_pciextirq_disable(char *s)
 {
+      cns3xxx_pciextirq = 0;
+      return 1;
+}
+__setup("noextirq", cns3xxx_pciextirq_disable);
+
+static int __init laguna_pcie_init_irq(void)
+{
+	u32 __iomem *mem = (void __iomem *)(CNS3XXX_GPIOB_BASE_VIRT + 0x0004);
+	u32 reg = (__raw_readl(mem) >> 26) & 0xf;
+	int irqs[] = {
+		IRQ_CNS3XXX_EXTERNAL_PIN0,
+		IRQ_CNS3XXX_EXTERNAL_PIN1,
+		IRQ_CNS3XXX_EXTERNAL_PIN2,
+		154,
+	};
+
 	if (!machine_is_gw2388())
 		return 0;
 
-	return cns3xxx_pcie_init();
+	/* Verify GPIOB[26:29] == 0001b indicating support for ext irqs */
+	if (cns3xxx_pciextirq && reg != 1)
+		cns3xxx_pciextirq = 0;
+
+	if (cns3xxx_pciextirq) {
+		printk("laguna: using isolated PCI interrupts:"
+		       " irq%d/irq%d/irq%d/irq%d\n",
+		       irqs[0], irqs[1], irqs[2], irqs[3]);
+		cns3xxx_pcie_set_irqs(0, irqs);
+	} else {
+		printk("laguna: using shared PCI interrupts: irq%d\n",
+		       IRQ_CNS3XXX_PCIE0_DEVICE);
+	}
+
+	return 0;
 }
-subsys_initcall(laguna_pcie_init);
+subsys_initcall(laguna_pcie_init_irq);
 
 static int __init laguna_model_setup(void)
 {
@@ -891,10 +980,27 @@ static int __init laguna_model_setup(void)
 		return 0;
 
 	printk("Running on Gateworks Laguna %s\n", laguna_info.model);
-	cns3xxx_gpio_init( 0, 32, CNS3XXX_GPIOA_BASE_VIRT, IRQ_CNS3XXX_GPIOA,
-		NR_IRQS_CNS3XXX);
-	cns3xxx_gpio_init(32, 32, CNS3XXX_GPIOB_BASE_VIRT, IRQ_CNS3XXX_GPIOB,
-		NR_IRQS_CNS3XXX + 32);
+
+	/*
+	 * If pcie external interrupts are supported and desired
+	 * configure IRQ types and configure pin function.
+	 * Note that cns3xxx_pciextirq is enabled by default, but can be
+	 * unset via the 'noextirq' kernel param or by laguna_pcie_init() if
+	 * the baseboard model does not support this hardware feature.
+	 */
+	if (cns3xxx_pciextirq) {
+		mem = (void __iomem *)(CNS3XXX_MISC_BASE_VIRT + 0x0018);
+		reg = __raw_readl(mem);
+		/* GPIO26 is gpio, EXT_INT[0:2] not gpio func */
+		reg &= ~0x3c000000;
+		reg |= 0x38000000;
+		__raw_writel(reg, mem);
+
+		irq_set_irq_type(154, IRQ_TYPE_LEVEL_LOW);
+		irq_set_irq_type(93, IRQ_TYPE_LEVEL_HIGH);
+		irq_set_irq_type(94, IRQ_TYPE_LEVEL_HIGH);
+		irq_set_irq_type(95, IRQ_TYPE_LEVEL_HIGH);
+	}
 
 	if (strncmp(laguna_info.model, "GW", 2) == 0) {
 		if (laguna_info.config_bitmap & ETH0_LOAD)
@@ -1006,19 +1112,56 @@ static int __init laguna_model_setup(void)
 		if ( (strncmp(laguna_info.model, "GW2388", 6) == 0)
 		  || (strncmp(laguna_info.model, "GW2389", 6) == 0) )
 		{
-			// configure GPIO's
+			// GSC
+			laguna_keys[0].gpio = 100;
+			gsc_i2cinfo.irq = 97;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
 			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2388));
-			// configure LED's
+			// LED's
 			laguna_gpio_leds_data.num_leds = 2;
+
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_gsc_input);
+			platform_device_register(&laguna_keys_device);
 		} else if (strncmp(laguna_info.model, "GW2387", 6) == 0) {
-			// configure GPIO's
+			// GSC
+			laguna_keys[0].gpio = 100;
+			gsc_i2cinfo.irq = 97;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
 			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2387));
-			// configure LED's
+			// LED's
 			laguna_gpio_leds_data.num_leds = 2;
+
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_gsc_input);
+			platform_device_register(&laguna_keys_device);
+		} else if (strncmp(laguna_info.model, "GW2386", 6) == 0) {
+			// GSC
+			laguna_keys[0].gpio = 100;
+			gsc_i2cinfo.irq = 97;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
+			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2386));
+			// LED's
+			laguna_gpio_leds_data.num_leds = 2;
+
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			i2c_new_device(i2c_get_adapter(0), &pca2_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_gsc_input);
+			platform_device_register(&laguna_keys_device);
 		} else if (strncmp(laguna_info.model, "GW2385", 6) == 0) {
-			// configure GPIO's
+			// GSC
+			laguna_keys[0].gpio = 100;
+			gsc_i2cinfo.irq = 96;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
 			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2385));
-			// configure LED's
+			// LED's
 			laguna_gpio_leds[0].gpio = 115;
 			laguna_gpio_leds[1].gpio = 12;
 			laguna_gpio_leds[1].name = "red";
@@ -1030,44 +1173,98 @@ static int __init laguna_model_setup(void)
 			laguna_gpio_leds[3].name = "blue";
 			laguna_gpio_leds[3].active_low = 0,
 			laguna_gpio_leds_data.num_leds = 4;
+
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_gsc_input);
+			platform_device_register(&laguna_keys_device);
 		} else if ( (strncmp(laguna_info.model, "GW2384", 6) == 0)
 			 || (strncmp(laguna_info.model, "GW2394", 6) == 0) )
 		{
-			// configure GPIO's
+			// GSC
+			laguna_keys[0].gpio = 100;
+			gsc_i2cinfo.irq = 96;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
 			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2384));
-			// configure LED's
+			// LED's
 			laguna_gpio_leds_data.num_leds = 1;
+
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_gsc_input);
+			platform_device_register(&laguna_keys_device);
 		} else if (strncmp(laguna_info.model, "GW2383", 6) == 0) {
-			// configure GPIO's
+			// GSC
+			laguna_keys[0].gpio = 108;
+			gsc_i2cinfo.irq = 97;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
 			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2383));
-			// configure LED's
+			// LED's
 			laguna_gpio_leds[0].gpio = 107;
 			laguna_gpio_leds_data.num_leds = 1;
+
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_gsc_input);
+			platform_device_register(&laguna_keys_device);
 		} else if (strncmp(laguna_info.model, "GW2382", 6) == 0) {
-			// configure GPIO's
+			// GSC
+			laguna_keys[0].gpio = 108;
+			gsc_i2cinfo.irq = 97;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
 			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2382));
-			// configure LED's
+			// LED's
 			laguna_gpio_leds[0].gpio = 107;
 			laguna_gpio_leds_data.num_leds = 1;
+
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_gsc_input);
+			platform_device_register(&laguna_keys_device);
 		} else if (strncmp(laguna_info.model, "GW2380", 6) == 0) {
-			// configure GPIO's
+			// GSC
+			laguna_keys[0].gpio = 108;
+			gsc_i2cinfo.irq = 97;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
 			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2380));
-			// configure LED's
+			// LED's
 			laguna_gpio_leds[0].gpio = 107;
 			laguna_gpio_leds[1].gpio = 106;
 			laguna_gpio_leds_data.num_leds = 2;
+
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_gsc_input);
+			platform_device_register(&laguna_keys_device);
 		} else if ( (strncmp(laguna_info.model, "GW2391", 6) == 0)
 			 || (strncmp(laguna_info.model, "GW2393", 6) == 0) )
 		{
-			// configure GPIO's
+			// GSC
+			laguna_keys[0].gpio = 100;
+			gsc_i2cinfo.irq = 97;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
 			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2391));
-			// configure LED's
+			// LED's
 			laguna_gpio_leds_data.num_leds = 2;
+
+			platform_device_register(&laguna_gsc_input);
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_keys_device);
 		}
-		platform_device_register(&laguna_gpio_leds_device);
 	} else {
 		// Do some defaults here, not sure what yet
 	}
+
+	platform_device_register(&laguna_gsc_watchdog);
+
+	platform_device_register(&laguna_watchdog);
+
 	return 0;
 }
 late_initcall(laguna_model_setup);
@@ -1079,6 +1276,7 @@ MACHINE_START(GW2388, "Gateworks Corporation Laguna Platform")
 	.init_irq	= cns3xxx_init_irq,
 	.init_time	= cns3xxx_timer_init,
 	.init_machine	= laguna_init,
+	.init_late      = cns3xxx_pcie_init_late,
 #ifndef CONFIG_GSC_CORE
 	.restart	= cns3xxx_restart,
 #endif
