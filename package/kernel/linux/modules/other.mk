@@ -481,38 +481,6 @@ endef
 
 $(eval $(call KernelPackage,bcma))
 
-define KernelPackage/gsc-core
-  SUBMENU:=$(OTHER_MENU)
-  TITLE:=Gateworks Core Driver
-  DEPENDS:=+kmod-i2c-core
-  KCONFIG:=CONFIG_GSC_CORE
-  FILES:= \
-	$(LINUX_DIR)/drivers/mfd/mfd-core.ko \
-	$(LINUX_DIR)/drivers/mfd/gsc.ko
-  AUTOLOAD:=$(call AutoLoad,50,gsc,1)
-endef
-
-define KernelPackage/gsc-core/description
- Kernel module for GSC Core driver
-endef
-
-$(eval $(call KernelPackage,gsc-core))
-
-define KernelPackage/wdt-mfd-gsc
-  SUBMENU:=$(OTHER_MENU)
-  TITLE:=Gateworks MFD Watchdog Timer
-  DEPENDS:=+kmod-gsc-core
-  KCONFIG:=CONFIG_GSC_WATCHDOG
-  FILES:=$(LINUX_DIR)/drivers/$(WATCHDOG_DIR)/gsc_wdt.ko
-  AUTOLOAD:=$(call AutoLoad,50,gsc_wdt,1)
-endef
-
-define KernelPackage/wdt-mfd-gsc/description
- Kernel module for GSC MFD Watchdog
-endef
-
-$(eval $(call KernelPackage,wdt-mfd-gsc))
-
 define KernelPackage/wdt-omap
   SUBMENU:=$(OTHER_MENU)
   TITLE:=OMAP Watchdog timer
