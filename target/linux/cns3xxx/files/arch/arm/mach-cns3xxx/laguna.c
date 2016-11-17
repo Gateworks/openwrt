@@ -1194,6 +1194,10 @@ static int __init laguna_model_setup(void)
 			platform_device_register(&laguna_gpio_leds_device);
 			platform_device_register(&laguna_gsc_input);
 			platform_device_register(&laguna_keys_device);
+
+			// GW2394 does not have isolated interrupts yet it
+			// does have the strapping used to normally detect it
+			cns3xxx_pciextirq = 0;
 		} else if (strncmp(laguna_info.model, "GW2383", 6) == 0) {
 			// GSC
 			laguna_keys[0].gpio = 108;
