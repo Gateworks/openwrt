@@ -1,0 +1,33 @@
+From 7af4d3c85f3aa4e7fd2e967ae8e78873a726278b Mon Sep 17 00:00:00 2001
+From: Robert Jones <rjones@gateworks.com>
+Date: Thu, 22 Dec 2016 10:13:58 -0800
+Subject: [PATCH] kernel: changed shutdown behavior to call system restart
+
+Following the reasoning that embedded systems applications do not
+benefit from a shutdown state where a user must press a physical
+button to wake the machine, a decision was made to force a system
+restart in the event of a machine_shutdown call. This function
+is primarily encountered during a critical temperature trip and a
+reset in this scenario will cause the bootloader to hold execution
+until the CPU falls below critical temperature.
+
+Signed-off-by: Robert Jones <rjones@gateworks.com>
+---
+ arch/arm/kernel/process.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+--- a/arch/arm/kernel/reboot.c
++++ b/arch/arm/kernel/reboot.c
+@@ -117,11 +117,7 @@ void machine_halt(void)
+  */
+ void machine_power_off(void)
+ {
+-	local_irq_disable();
+-	smp_send_stop();
+-
+-	if (pm_power_off)
+-		pm_power_off();
++	machine_restart(NULL);
+ }
+ 
+ /*
