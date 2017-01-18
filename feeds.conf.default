@@ -1,5 +1,5 @@
 # Generic Gateworks package feed
-src-git gateworks https://github.com/Gateworks/gw-openwrt-packages.git^65d7e3a
+src-git gateworks https://github.com/Gateworks/gw-openwrt-packages.git^dc080c1
 # Upstream OpenWRT package feeds
 src-git packages https://github.com/Gateworks/openwrt-packages.git^86b24bcf
 src-git luci https://github.com/Gateworks/openwrt-luci.git^1399a22
