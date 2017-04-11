@@ -124,6 +124,7 @@ define Device/ventana
 		imx6dl-gw551x \
 		imx6dl-gw552x \
 		imx6dl-gw553x \
+		imx6dl-gw560x \
 		imx6dl-gw5904 \
 		imx6q-gw51xx \
 		imx6q-gw52xx \
@@ -133,6 +134,7 @@ define Device/ventana
 		imx6q-gw551x \
 		imx6q-gw552x \
 		imx6q-gw553x \
+		imx6q-gw560x \
 		imx6q-gw5904
 	IMAGES := nand_normal.ubi nand_large.ubi bootfs.tar.gz
 	IMAGE/nand_normal.ubi := ubi-boot-overlay normal 2048 124KiB 128KiB 8124

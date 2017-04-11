@@ -13,6 +13,7 @@ board_config_update
 case "$board" in
 *gw51xx |\
 *gw52xx |\
+*gw560x |\
 *gw5904)
 	ucidef_set_interface_lan 'eth0'
 	;;
