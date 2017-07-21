@@ -1147,7 +1147,7 @@ static int __init laguna_model_setup(void)
 			// GPIO's
 			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2386));
 			// LED's
-			laguna_gpio_leds_data.num_leds = 2;
+			laguna_gpio_leds_data.num_leds = 22;
 
 			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
 			i2c_new_device(i2c_get_adapter(0), &pca2_i2cinfo);
@@ -1240,8 +1240,7 @@ static int __init laguna_model_setup(void)
 			platform_device_register(&laguna_gpio_leds_device);
 			platform_device_register(&laguna_gsc_input);
 			platform_device_register(&laguna_keys_device);
-		} else if ( (strncmp(laguna_info.model, "GW2391", 6) == 0)
-			 || (strncmp(laguna_info.model, "GW2393", 6) == 0) )
+		} else if ( (strncmp(laguna_info.model, "GW2391", 6) == 0) )
 		{
 			// GSC
 			laguna_keys[0].gpio = 100;
@@ -1254,6 +1253,22 @@ static int __init laguna_model_setup(void)
 
 			platform_device_register(&laguna_gsc_input);
 			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			platform_device_register(&laguna_gpio_leds_device);
+			platform_device_register(&laguna_keys_device);
+		} else if ( (strncmp(laguna_info.model, "GW2393", 6) == 0) )
+		{
+			// GSC
+			laguna_keys[0].gpio = 100;
+			gsc_i2cinfo.irq = 97;
+			i2c_new_device(i2c_get_adapter(0), &gsc_i2cinfo);
+			// GPIO's
+			laguna_register_gpio(ARRAY_AND_SIZE(laguna_gpio_gw2391));
+			// LED's
+			laguna_gpio_leds_data.num_leds = 22;
+
+			platform_device_register(&laguna_gsc_input);
+			i2c_new_device(i2c_get_adapter(0), &gscgpio_i2cinfo);
+			i2c_new_device(i2c_get_adapter(0), &pca2_i2cinfo);
 			platform_device_register(&laguna_gpio_leds_device);
 			platform_device_register(&laguna_keys_device);
 		}
