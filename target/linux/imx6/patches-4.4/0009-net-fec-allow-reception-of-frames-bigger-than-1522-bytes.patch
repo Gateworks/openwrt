@@ -1,0 +1,53 @@
+commit 9b6aacaaca5ea6ea8232ecd45448328d025a55a6
+Author: Andrew Lunn <andrew@lunn.ch>
+Date:   Sun Jul 30 19:36:05 2017 +0200
+
+    net: fec: Allow reception of frames bigger than 1522 bytes
+    
+    The FEC Receive Control Register has a 14 bit field indicating the
+    longest frame that may be received. It is being set to 1522. Frames
+    longer than this are discarded, but counted as being in error.
+    
+    When using DSA, frames from the switch has an additional header,
+    either 4 or 8 bytes if a Marvell switch is used. Thus a full MTU frame
+    of 1522 bytes received by the switch on a port becomes 1530 bytes when
+    passed to the host via the FEC interface.
+    
+    Change the maximum receive size to 2048 - 64, where 64 is the maximum
+    rx_alignment applied on the receive buffer for AVB capable FEC
+    cores. Use this value also for the maximum receive buffer size. The
+    driver is already allocating a receive SKB of 2048 bytes, so this
+    change should not have any significant effects.
+
+    Tested on imx51, imx6, vf610.
+    
+    Signed-off-by: Andrew Lunn <andrew@lunn.ch>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+
+--- a/drivers/net/ethernet/freescale/fec_main.c
++++ b/drivers/net/ethernet/freescale/fec_main.c
+@@ -162,10 +162,12 @@ MODULE_PARM_DESC(macaddr, "FEC Ethernet
+ #endif /* CONFIG_M5272 */
+ 
+ /* The FEC stores dest/src/type/vlan, data, and checksum for receive packets.
++ *
++ * 2048 byte skbufs are allocated. However, alignment requirements
++ * varies between FEC variants. Worst case is 64, so round down by 64.
+  */
+-#define PKT_MAXBUF_SIZE		1522
++#define PKT_MAXBUF_SIZE		(round_down(2048 - 64, 64))
+ #define PKT_MINBUF_SIZE		64
+-#define PKT_MAXBLR_SIZE		1536
+ 
+ /* FEC receive acceleration */
+ #define FEC_RACC_IPDIS		(1 << 1)
+@@ -878,7 +880,7 @@ static void fec_enet_enable_ring(struct
+ 	for (i = 0; i < fep->num_rx_queues; i++) {
+ 		rxq = fep->rx_queue[i];
+ 		writel(rxq->bd_dma, fep->hwp + FEC_R_DES_START(i));
+-		writel(PKT_MAXBLR_SIZE, fep->hwp + FEC_R_BUFF_SIZE(i));
++		writel(PKT_MAXBUF_SIZE, fep->hwp + FEC_R_BUFF_SIZE(i));
+ 
+ 		/* enable DMA1/2 */
+ 		if (i)
