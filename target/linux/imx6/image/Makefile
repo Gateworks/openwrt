@@ -38,6 +38,10 @@ define Build/ubi-boot-overlay
 		ln -sf $(IMG_PREFIX)-$(dts).dtb \
 			$(TARGET_ROOTFS_DIR)/boot-$(DEVICE_NAME)_$(word 1, $(1))/$(dts).dtb; \
 	)
+	$(foreach dts,$(shell echo $(DEVICE_DTS_SYMLINK)), \
+		ln -sf $(IMG_PREFIX)-$(word 1, $(subst :, ,$(dts))).dtb \
+			$(TARGET_ROOTFS_DIR)/boot-$(DEVICE_NAME)_$(word 1, $(1))/$(word 2, $(subst :, ,$(dts))).dtb; \
+	)
 	mkimage -A arm -O linux -T script -C none -a 0 -e 0 \
 		-n '$(DEVICE_ID) OpenWrt bootscript' \
 		-d ./bootscript-$(DEVICE_NAME) \
@@ -82,6 +86,10 @@ define Build/bootfs.tar.gz
 		ln -sf $(IMG_PREFIX)-$(dts).dtb \
 			$(TARGET_ROOTFS_DIR)/boot-$(DEVICE_NAME)/$(dts).dtb; \
 	)
+	$(foreach dts,$(shell echo $(DEVICE_DTS_SYMLINK)), \
+		ln -sf $(IMG_PREFIX)-$(word 1, $(subst :, ,$(dts))).dtb \
+			$(TARGET_ROOTFS_DIR)/boot-$(DEVICE_NAME)/$(word 2, $(subst :, ,$(dts))).dtb; \
+	)
 	mkimage -A arm -O linux -T script -C none -a 0 -e 0 \
 		-n '$(DEVICE_ID) OpenWrt bootscript' \
 		-d ./bootscript-$(DEVICE_NAME) \
@@ -103,6 +111,7 @@ KERNEL_LOADADDR=0x10008000
 
 define Device/Default
 	DEVICE_DTS :=
+	DEVICE_DTS_SYMLINK :=
 	FILESYSTEMS := squashfs ext4
 	KERNEL_INSTALL := 1
 	KERNEL_SUFFIX := -uImage
@@ -112,7 +121,7 @@ define Device/Default
 	IMAGES :=
 endef
 
-DEVICE_VARS += DEVICE_DTS
+DEVICE_VARS += DEVICE_DTS DEVICE_DTS_SYMLINK
 
 define Device/ventana
 	PROFILES = Generic VENTANA
@@ -136,6 +145,9 @@ define Device/ventana
 		imx6q-gw553x \
 		imx6q-gw560x \
 		imx6q-gw5904
+	DEVICE_DTS_SYMLINK := \
+		"imx6q-gw552x:imx6q-gw5906" \
+		"imx6dl-gw552x:imx6dl-gw5906"
 	IMAGES := nand_normal.ubi nand_large.ubi bootfs.tar.gz
 	IMAGE/nand_normal.ubi := ubi-boot-overlay normal 2048 124KiB 128KiB 8124
 	IMAGE/nand_large.ubi := ubi-boot-overlay large 4096 248KiB 256KiB 8124
