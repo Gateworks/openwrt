@@ -44,6 +44,21 @@ endef
 $(eval $(call KernelPackage,hwmon-vid))
 
 
+define KernelPackage/hwmon-ads1015
+  TITLE:=ADS1015 monitoring support
+  KCONFIG:= CONFIG_SENSORS_ADS1015
+  FILES:= $(LINUX_DIR)/drivers/hwmon/ads1015.ko
+  AUTOLOAD:=$(call AutoLoad,60,ads1015 ads1015)
+  $(call AddDepends/hwmon,+kmod-i2c-core)
+endef
+
+define KernelPackage/hwmon-ads1015/description
+ Kernel module for ADS1015 I2C Delta-Sigma ADS
+endef
+
+$(eval $(call KernelPackage,hwmon-ads1015))
+
+
 define KernelPackage/hwmon-adt7410
   TITLE:=ADT7410 monitoring support
   KCONFIG:= \
