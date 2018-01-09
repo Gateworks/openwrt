@@ -54,6 +54,8 @@ imx6_board_detect() {
 		name="gw560x"
 		;;
 
+	"Gateworks Ventana i.MX6 DualLite/Solo GW5907" |\
+	"Gateworks Ventana i.MX6 Dual/Quad GW5907") |\
 	"Gateworks Ventana GW5901" |\
 	"Gateworks Ventana GW5902")
 		name="gw590x"

@@ -135,6 +135,7 @@ define Device/ventana
 		imx6dl-gw553x \
 		imx6dl-gw560x \
 		imx6dl-gw5904 \
+		imx6dl-gw5907 \
 		imx6q-gw51xx \
 		imx6q-gw52xx \
 		imx6q-gw53xx \
