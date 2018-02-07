@@ -1,0 +1,98 @@
+#!/bin/sh
+#
+# Make FLASH firmware images for Gateworks boards based on u-boot
+#
+
+#
+# Model definitions: defines bootloader/kernel/rootfs partitioning scheme
+#   These are user preferences - create custom mappings as needed
+#
+#MODEL_<name>=<arch>:<default_flash_size>:<kernel_off>:<variant>
+#
+MODEL_laguna_spi=cns3xxx:16M:512k:spi
+MODEL_laguna_nor=cns3xxx:16M:384k:nor
+
+usage() {
+   echo "usage: $0 <base-model> <uboot.bin> <openwrt-root> [flash-size]"
+   echo ""
+   echo " Models:"
+   echo "    laguna_spi"
+   echo "    laguna_nor"
+   echo ""
+   exit 1
+}
+
+# convert a str ending with a suffix (m/k/g) to bytes
+bytes() {
+   local num=${1%?}
+   local suf=${1#${1%?}}
+
+   case $suf in
+      k|K) num=$((num*1024)) ;;
+      m|M) num=$((num*1024*1024)) ;;
+      g|G) num=$((num*1024*1024*1024)) ;;
+      *) num=$1 ;;
+   esac
+
+   echo $num
+}
+
+# return filesize in kbytes
+fsize() {
+   local size=$(stat -c %s $1)
+   echo "$((size/1024))k"
+}
+
+[ -z "$1" ] && usage
+
+# parse cmdline options
+PROD=$1          # product (ie laguna_nor)
+UBOOT=$2         # path of u-boot image
+OPENWRT=${3:-./} # dir to openwrt containing bin/<target>
+SIZE=${4:-32m}   # flash size (ie 16m)
+
+eval details=\$MODEL_${PROD}
+[ -z "$details" ] && {
+  echo "invalid model"
+  exit 2
+}  
+
+TARGET=${details%%:*}; details=${details#*:}
+SIZE=${details%%:*}; details=${details#*:}
+KERNEL_BOUNDARY=${details%%:*}; details=${details#*:}
+VARIANT=${details%%:*}; details=${details#*:}
+[ "$4" ] && SIZE=$4
+
+case "$TARGET" in
+	cns3xxx)
+		KERNEL=$OPENWRT/bin/targets/$TARGET/generic/gateworks-${TARGET}-squashfs-laguna_${VARIANT}-legacy-sysupgrade.bin
+		;;
+esac
+
+#KERNEL=$OPENWRT/bin/cns3xxx/openwrt-cns3xxx-initramfs-uImage
+
+echo "Model :$PROD"
+echo "Target:$TARGET"
+echo "Flash :$SIZE"
+[ "$VARIANT" ] && echo "Variant=$VARIANT"
+size=$KERNEL_BOUNDARY
+echo "u-boot:$UBOOT $(fsize $UBOOT)@0 ($size)"
+size=$(( $(bytes $SIZE) - $(bytes $KERNEL_BOUNDARY)))
+echo "kernel+rootfs:$KERNEL $(fsize $KERNEL)@$KERNEL_BOUNDARY ($((size/1024))k)"
+# sanity checks
+[ "$TARGET" -a "$SIZE" -a -r "$KERNEL" -a -r "$UBOOT" ] || usage
+
+# create padded blank image
+SIZEM="$(echo -n $SIZE | tr -d M)"
+tr "\000" "\377" < /dev/zero | dd bs=1k count=${SIZEM}k of=$PROD.bin 2>/dev/null
+# pad u-boot+env to kernel boundary
+dd if=$UBOOT of=uboot.bin.$$ bs=$KERNEL_BOUNDARY conv=sync 2>/dev/null
+# append kernel
+cat $KERNEL >> uboot.bin.$$
+cp uboot.bin.$$ image.bin.$$
+# copy image into padded file
+dd if=image.bin.$$ of=$PROD.bin conv=notrunc 2>/dev/null
+# cleanup tmpfiles
+rm uboot.bin.$$ image.bin.$$
+
+echo "$PROD.bin complete: $(ls -lh $PROD.bin)"

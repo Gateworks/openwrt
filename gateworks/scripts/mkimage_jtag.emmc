@@ -1,0 +1,223 @@
+#!/bin/bash
+#
+# mkimage_jtag v1.1.0
+# Copyright 2014-2017 Gateworks Corporation <support@gateworks.com>
+#
+# create a binary image suitable for IMX6 targets for jtag_usbv4
+#
+# usage: mkimage_jtag [OPTIONS] [<SPL> <u-boot.img>]|[<SPL> <u-boot.img> <rootfs>]|[<rootfs>]
+#
+# Options:
+#   --nand - (default) create image suitable for NAND flash (rootfs is a ubi)
+#   --emmc - create image suitable for block device (rootfs is a disk image)
+#
+# Examples:
+#   # create jtagable bin containing just bootloader (will not overwrite all)
+#   mkimage_jtag -nand <SPL> <u-boot.img> > uboot.bin
+#   # create jtagable bin containing bootloader+ubi (will overwrite all)
+#   mkimage_jtag -name <SPL> <u-boot.img> <ubi> > image.bin
+#   # create jtagable bin containing ubi (will not overwrite bootloader/env)
+#   mkimage_jtag -name <ubi> > image.bin
+#
+# This puts a simple header around the binary parts that make up a bootable
+# image, sending the output to stdout.
+#
+# The header consists of the following structure (little-endian):
+#
+# u16 magic: GW
+# u16 config:
+#   bit[0:1] - erase_config
+#      0=entire flash (use only on first header)
+#      1=none (perform no erase)
+#      2=part (erase only this part - offset must align with flash block)
+#      3=to end (erase from this part to end of device)
+#   bit[2:4]   - partition number (for eMMC: 1-boot0 2=boot1 7=user)
+#   bit[5]     - gzip compressed data (1=gzip-compressed 0=uncompressed)
+#   bit[6:12]  - reserved
+#   bit[13:15] - type (0=NAND 1=eMMC)
+# u32 offset: byte offset in flash (logical) to program this data
+#      (this must align with a flash block boundary if erasing part or to end
+#       and otherwise must align with a flashs page boundary)
+# u32 dsize: byte size of this data segment
+# u32 psize: part size of this data segment
+#
+# The psize value is only used in the special case where dsize=0 which
+# specifies a bootstream.  This must be the first part in a series of parts
+# and is programmed in a specific fashion on NAND FLASH in accordance with
+# the requirements of the i.MX6 BOOT ROM.  In this case the data must
+# be an i.MX6 bootlet containing an IVT and DCD, such as u-boot.imx.
+#
+
+# erase_config: config[0:1]
+ERASE_ALL=0
+ERASE_NON=1
+ERASE_PRT=2
+ERASE_END=3
+
+# partition_no: config[2:3]
+PART_BOOT0=$((1<<2))
+PART_BOOT1=$((2<<2))
+PART_USER=$((0<<2))
+PART_RPMB=$((3<<2))
+
+# data type: config[13:15] 
+TYPE_NAND=$((0<<13))
+TYPE_EMMC=$((1<<13))
+
+# output binary u32
+# $1 int
+u32() {
+        b0=$(( $(($1>>24)) & 0xff))
+        b1=$(( $(($1>>16)) & 0xff))
+        b2=$(( $(($1>>8)) & 0xff))
+        b3=$(( $(($1>>0)) & 0xff))
+
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b3)"
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b2)"
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b1)"
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b0)"
+}
+
+# output binary u16
+# $1 int
+u16() {
+        b0=$(( $(($1>>8)) & 0xff))
+        b1=$(( $(($1>>0)) & 0xff))
+
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b1)"
+        /usr/bin/printf "\\x$(/usr/bin/printf "%x" $b0)"
+}
+
+# emit a configuration header for setting eMMC PART_CONFIG
+# (if file size and offset are both 0, then PART_CONFIG gets set to part_num)
+# $1 config
+emmc_partconf()
+{
+	local config=$1
+	local attr=
+
+if [ $DEBUG ]; then
+	[ $((config & 0x000c)) -eq $PART_BOOT0 ] && attr="$attr PART_BOOT0"
+	[ $((config & 0x000c)) -eq $PART_BOOT1 ] && attr="$attr PART_BOOT1"
+	[ $((config & 0x000c)) -eq $PART_USER ]  && attr="$attr PART_USER"
+	[ $((config & 0x000c)) -eq $PART_RPMB ]  && attr="$attr PART_RPMB"
+        /usr/bin/printf "PART_CONFIG: %s\n\n" $attr
+else
+        /usr/bin/printf "GW" # magic
+        u16 $(($config|$type))
+        u32 0
+        u32 0
+        u32 0
+fi
+}
+
+# emit a part
+# $1 file
+# $2 config
+# $3 offset
+# $4 size (only needed if offset==0 for bootloader part size)
+emit()
+{
+        local file=$1
+        local config=$2
+        local offset=$3
+        local part_size=${4:-0}
+        local ext=${file##*.}
+        local fsize=$(ls -lL $file | awk '{print $5}')
+
+	[ "$file" == "$ext" ] && ext=
+	[ -r $file ] || { (>&2 echo "Error: $file not readable"); exit -1; }
+        [ "$ext" == "gz" ] && config=$((config|$((1<<5))))
+	config=$((config|$type))
+
+if [ $DEBUG ]; then
+	attr=
+	[ $((config & 0x0003)) -eq $ERASE_ALL ]  && attr="$attr ERASE_ALL"
+	[ $((config & 0x0003)) -eq $ERASE_NON ]  && attr="$attr ERASE_NON"
+	[ $((config & 0x0003)) -eq $ERASE_PRT ]  && attr="$attr ERASE_PRT"
+	[ $((config & 0x0003)) -eq $ERASE_END ]  && attr="$attr ERASE_END"
+	[ $((config & 0x000c)) -eq $PART_BOOT0 ] && attr="$attr PART_BOOT0"
+	[ $((config & 0x000c)) -eq $PART_BOOT1 ] && attr="$attr PART_BOOT1"
+	[ $((config & 0x000c)) -eq $PART_USER ]  && attr="$attr PART_USER"
+	[ $((config & 0x000c)) -eq $PART_RPMB ]  && attr="$attr PART_RPMB"
+	[ $((config & 0xe000)) -eq $TYPE_NAND ]  && attr="$attr TYPE_NAND"
+	[ $((config & 0xe000)) -eq $TYPE_EMMC ]  && attr="$attr TYPE_EMMC"
+	/usr/bin/printf "file  :%s (%s:%d:0x%08x)\n" "$file" "$ext" $fsize $fsize
+	/usr/bin/printf "config:0x%04x %s\n" $config "$attr"
+	/usr/bin/printf "offset:0x%08x\n" $offset
+	/usr/bin/printf "len   :0x%08x\n\n" $part_size
+else
+        /usr/bin/printf "GW" # magic
+        u16 $config
+        u32 $offset
+        u32 $fsize
+        u32 $part_size
+        cat $file
+fi
+}
+
+type=$TYPE_NAND
+[ "$1" == "--emmc" ] && { type=$TYPE_EMMC; shift; }
+[ "$1" == "--nand" ] && { type=$TYPE_NAND; shift; }
+
+# output image to stdout
+case $# in
+        # filesystem (w/o touching bootloader+env)
+        1)
+	case $type in
+                $TYPE_NAND)
+                emit $1 $ERASE_END 0x1100000    # rootfs at 17MB+ (erase to end)
+                ;;
+
+                $TYPE_EMMC)
+                #emmc_partconf $PART_BOOT0
+                emit $1 $(($ERASE_END|$PART_USER)) 0 # rootfs at user
+                ;;
+        esac
+        ;;
+
+        # bootloader (SPL + u-boot.img) w/o eraseing env/rootfs
+        2)
+        case $type in
+                $TYPE_NAND)
+                emit $1 $ERASE_PRT 0 0xE00000   # SPL from 0 to 14MB
+                emit $2 $ERASE_PRT 0x0E00000 0x0200000  # u-boot from 14MB-16MB
+                ;;
+
+                $TYPE_EMMC)
+emmc_partconf $PART_BOOT0
+		# TODO: this is wrong - this erases entire BOOT0
+		# jtag_gang does not yet support ERASE_PRT for EMMC
+                #emit $1 $(($ERASE_PRT|$PART_BOOT0)) 0x2 0x86 # SPL
+                #emit $2 $(($ERASE_PRT|$PART_BOOT0)) 0x8a 0x500 # u-boot.img
+		# so for now, cheat and erase all of boot0
+                emit $1 $(($ERASE_ALL|$PART_BOOT0)) 0x2 0x86 # SPL
+                emit $2 $(($ERASE_NON|$PART_BOOT0)) 0x8a 0x500 # u-boot.img
+                ;;
+        esac
+        ;;
+
+        # erase entire part and program SPL + u-boot.img + rootfs
+        3)
+        case $type in
+                $TYPE_NAND)
+                emit $1 $ERASE_ALL  0 0xE00000  # SPL from 0 to 14MB
+                emit $2 $ERASE_NON 0x0E00000    # u-boot at 14MB+
+                emit $3 $ERASE_NON 0x1100000    # rootfs at 17MB+
+                ;;
+
+                $TYPE_EMMC)
+                emmc_partconf $PART_BOOT0
+                emit $1 $(($ERASE_ALL|$PART_BOOT0)) 0x2 0x86 # SPL
+                emit $2 $(($ERASE_NON|$PART_BOOT0)) 0x8a 0x500 # u-boot.img
+                emit $3 $(($ERASE_ALL|$PART_USER)) 0x0 # img
+                ;;
+                esac
+        ;;
+
+        # usage
+        *)
+        echo "usage: $0 [<SPL> <u-boot.img>]|[<SPL> <u-boot.img> <ubi>]|[<ubi>]"
+        exit 1
+        ;;
+esac

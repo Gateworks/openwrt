@@ -1,0 +1,34 @@
+#!/bin/sh
+# usage: mkdisk /tftpboot/ventana/owrt 7264 256 # create a 7.1GB disk image with a 256MB ext4 fs
+OUT=$1 # owrt
+SIZEMB=$2 # Note our 8GiB emmc has a user part of 7264MB
+SIZEPART=${3:-$SIZEMB}
+PARTOFFSETMB=1
+PARTBYTES=$(( $((SIZEPART-PARTOFFSETMB)) * 1024 * 1024))
+PARTSECTOR=$((PARTOFFSETMB * 1024 * 1024 / 512))
+
+ROOT_IMX6=build_dir/target-arm_cortex-a9+neon_musl_eabi/root-imx6
+BOOT_IMX6=build_dir/target-arm_cortex-a9+neon_musl_eabi/linux-imx6/ventana-large-uImage.boot
+
+# create ext4 filesystem image
+rm -rf $ROOT_IMX6/boot
+mkdir -p $ROOT_IMX6/boot
+cp -r $BOOT_IMX6/* $ROOT_IMX6/boot
+staging_dir/host/bin/make_ext4fs -l $PARTBYTES -b 4096 -i 6000 -m 0  -T 1488936101 $OUT.ext4 $ROOT_IMX6/ || { exit 1; }
+gzip -k -f $OUT.ext4
+ls -lh $OUT.ext4*
+
+# create disk image
+truncate -s ${SIZEMB}M $OUT.img # using truncate creates a sparse file
+printf "$PARTSECTOR,,L,*" | sfdisk -uS $OUT.img
+sfdisk -uS -l $OUT.img
+dd if=$OUT.ext4 of=$OUT.img bs=1M seek=1
+gzip -k -f $OUT.img
+ls -lh $OUT.*
+
+echo "To update from uboot:"
+if [ "$SIZEPART" -gt 4096 ]; then
+   echo "tftp \${loadaddr} $OUT.img.gz && mmc dev 0 0 && time gzwrite mmc 0 \${loadaddr} \${filesize} 100000 0 $(printf "%x" $(($SIZEMB*1024*1024)))"
+else
+   echo "tftp \${loadaddr} $OUT.img.gz && mmc dev 0 0 && time gzwrite mmc 0 \${loadaddr} \${filesize}"
+fi
