@@ -147,7 +147,9 @@ define Device/ventana
 		imx6q-gw5904
 	DEVICE_DTS_SYMLINK := \
 		"imx6q-gw552x:imx6q-gw5906" \
-		"imx6dl-gw552x:imx6dl-gw5906"
+		"imx6dl-gw552x:imx6dl-gw5906" \
+		"imx6q-gw53xx:imx6q-gw5908" \
+		"imx6dl-gw53xx:imx6dl-gw5908"
 	IMAGES := nand_normal.ubi nand_large.ubi bootfs.tar.gz
 	IMAGE/nand_normal.ubi := ubi-boot-overlay normal 2048 124KiB 128KiB 8124
 	IMAGE/nand_large.ubi := ubi-boot-overlay large 4096 248KiB 256KiB 8124
