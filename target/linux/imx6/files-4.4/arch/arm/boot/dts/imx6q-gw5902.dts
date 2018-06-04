@@ -333,7 +333,7 @@
 	status = "okay";
 };
 
-&wdog2 {
+&wdog1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_wdog>;
 	fsl,ext-reset-output;
@@ -469,7 +469,7 @@
 
 	pinctrl_wdog: wdoggrp {
 		fsl,pins = <
-			MX6QDL_PAD_SD1_DAT3__WDOG2_B		0x1b0b0
+			MX6QDL_PAD_DISP0_DAT8__WDOG1_B		0x1b0b0
 		>;
 	};
 };
