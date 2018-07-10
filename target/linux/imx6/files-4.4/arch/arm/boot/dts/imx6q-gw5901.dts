@@ -294,6 +294,7 @@
 };
 
 &iomuxc {
+    imx6q-gw5901 {
 	pinctrl_enet: enetgrp {
 		fsl,pins = <
 			MX6QDL_PAD_RGMII_RXC__RGMII_RXC		0x1b0b0
@@ -401,4 +402,5 @@
 			MX6QDL_PAD_DISP0_DAT8__WDOG1_B		0x1b0b0
 		>;
 	};
+    };
 };
