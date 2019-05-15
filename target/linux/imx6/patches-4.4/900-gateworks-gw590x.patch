@@ -1,14 +1,19 @@
---- a/arch/arm/boot/dts/Makefile
-+++ b/arch/arm/boot/dts/Makefile
-@@ -295,6 +295,7 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
- 	imx6dl-gw552x.dtb \
+Index: linux-4.4/arch/arm/boot/dts/Makefile
+===================================================================
+--- linux-4.4.orig/arch/arm/boot/dts/Makefile
++++ linux-4.4/arch/arm/boot/dts/Makefile
+@@ -296,6 +296,10 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
  	imx6dl-gw553x.dtb \
+ 	imx6dl-gw560x.dtb \
  	imx6dl-gw5904.dtb \
++	imx6dl-gw5905.dtb \
 +	imx6dl-gw5907.dtb \
++	imx6dl-gw5910.dtb \
++	imx6dl-gw5912.dtb \
  	imx6dl-hummingboard.dtb \
  	imx6dl-nit6xlite.dtb \
  	imx6dl-nitrogen6x.dtb \
-@@ -321,6 +322,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
+@@ -322,12 +326,18 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
  	imx6q-gw52xx.dtb \
  	imx6q-gw53xx.dtb \
  	imx6q-gw5400-a.dtb \
@@ -17,3 +22,13 @@
  	imx6q-gw54xx.dtb \
  	imx6q-gw551x.dtb \
  	imx6q-gw552x.dtb \
+ 	imx6q-gw553x.dtb \
+ 	imx6q-gw560x.dtb \
+ 	imx6q-gw5904.dtb \
++	imx6q-gw5905.dtb \
++	imx6q-gw5907.dtb \
++	imx6q-gw5910.dtb \
++	imx6q-gw5912.dtb \
+ 	imx6q-hummingboard.dtb \
+ 	imx6q-nitrogen6x.dtb \
+ 	imx6q-nitrogen6_max.dtb \

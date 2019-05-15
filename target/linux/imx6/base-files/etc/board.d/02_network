@@ -11,17 +11,21 @@ board=$(imx6_board_name)
 board_config_update
 
 case "$board" in
-*gw51xx |\
-*gw52xx |\
+*gw5912 |\
+*gw5910 |\
+*gw5907 |\
+*gw5905 |\
+*gw5904 |\
 *gw560x |\
-*gw5901 |\
-*gw5904)
+*gw52xx |\
+*gw51xx)
 	ucidef_set_interface_lan 'eth0'
 	;;
-*gw53xx |\
-*gw54xx |\
+*gw5902 |\
+*gw5901 |\
 *gw552x |\
-*gw5901)
+*gw54xx |\
+*gw53xx)
 	ucidef_set_interfaces_lan_wan 'eth0' 'eth1'
 	;;
 *wandboard)

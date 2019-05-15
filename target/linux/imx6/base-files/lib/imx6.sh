@@ -54,16 +54,39 @@ imx6_board_detect() {
 		name="gw560x"
 		;;
 
-	"Gateworks Ventana i.MX6 DualLite/Solo GW5907" |\
-	"Gateworks Ventana i.MX6 Dual/Quad GW5907" |\
-	"Gateworks Ventana GW5901" |\
-	"Gateworks Ventana GW5902")
-		name="gw590x"
+	"Gateworks Ventana i.MX6 DualLite/Solo GW5901" |\
+	"Gateworks Ventana i.MX6 Dual/Quad GW5901")
+		name="gw5901"
+		;;
+
+	"Gateworks Ventana i.MX6 DualLite/Solo GW5902" |\
+	"Gateworks Ventana i.MX6 Dual/Quad GW5902")
+		name="gw5902"
 		;;
 
 	"Gateworks Ventana i.MX6 DualLite/Solo GW5904" |\
 	"Gateworks Ventana i.MX6 Dual/Quad GW5904")
 		name="gw5904"
+		;;
+
+	"Gateworks Ventana i.MX6 DualLite/Solo GW5905" |\
+	"Gateworks Ventana i.MX6 Dual/Quad GW5905")
+		name="gw5905"
+		;;
+
+	"Gateworks Ventana i.MX6 DualLite/Solo GW5907" |\
+	"Gateworks Ventana i.MX6 Dual/Quad GW5907")
+		name="gw5907"
+		;;
+
+	"Gateworks Ventana i.MX6 DualLite/Solo GW5910" |\
+	"Gateworks Ventana i.MX6 Dual/Quad GW5910")
+		name="gw5910"
+		;;
+
+	"Gateworks Ventana i.MX6 DualLite/Solo GW5912" |\
+	"Gateworks Ventana i.MX6 Dual/Quad GW5912")
+		name="gw5912"
 		;;
 
 	"Wandboard i.MX6 Dual Lite Board")
