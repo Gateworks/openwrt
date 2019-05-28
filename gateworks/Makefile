@@ -14,6 +14,7 @@ OPENWRT?=../
 PROFILE?=
 BUILD_BOOTLOADERS?=
 GW_SVN_URL?=http://svn.gateworks.com/
+GW_DEV_URL?=http://dev.gateworks.com/
 IMX6_TOOLCHAIN?=toolchain-arm_cortex-a9+neon_gcc-5.2.0_musl-1.1.11_eabi
 CNS3XXX_TOOLCHAIN?=toolchain-arm_mpcore+vfp_gcc-5.2.0_musl-1.1.11_eabi
 
@@ -101,16 +102,16 @@ bootloader/ventana/u-boot.img:
 	rm -f bootloader/ventana/u-boot.img
 	@printf "Fetching $@...\n"
 	@mkdir -p bootloader/ventana
-	svn export $(GW_SVN_URL)/ventana/images/u-boot.img \
-			bootloader/ventana/u-boot.img
+	wget $(GW_DEV_URL)/ventana/images/u-boot.img \
+			-O bootloader/ventana/u-boot.img
 
 .PHONY:bootloader/ventana/SPL
 bootloader/ventana/SPL:
 	rm -f bootloader/ventana/SPL
 	@printf "Fetching $@...\n"
 	@mkdir -p bootloader/ventana
-	svn export $(GW_SVN_URL)/ventana/images/SPL \
-			bootloader/ventana/SPL
+	wget $(GW_DEV_URL)/ventana/images/SPL \
+			-O bootloader/ventana/SPL
 
 
 .PHONY:bootloader/laguna/u-boot_nor.bin
@@ -118,16 +119,16 @@ bootloader/laguna/u-boot_nor.bin:
 	rm -f bootloader/laguna/u-boot_nor.bin
 	@printf "Fetching $@...\n"
 	@mkdir -p bootloader/laguna
-	svn export $(GW_SVN_URL)/laguna/images/u-boot_nor.bin \
-			bootloader/laguna/u-boot_nor.bin
+	wget $(GW_DEV_URL)/laguna/images/u-boot_nor.bin \
+			-O bootloader/laguna/u-boot_nor.bin
 
 .PHONY:bootloader/laguna/u-boot_spi.bin
 bootloader/laguna/u-boot_spi.bin:
 	rm -f bootloader/laguna/u-boot_spi.bin
 	@printf "Fetching $@...\n"
 	@mkdir -p bootloader/laguna
-	svn export $(GW_SVN_URL)/laguna/images/u-boot_spi.bin \
-			bootloader/laguna/u-boot_spi.bin
+	wget $(GW_DEV_URL)/laguna/images/u-boot_spi.bin \
+			-O bootloader/laguna/u-boot_spi.bin
 endif
 
 # firmware images
