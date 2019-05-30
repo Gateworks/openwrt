@@ -683,3 +683,33 @@ define KernelPackage/crypto-xts
 endef
 
 $(eval $(call KernelPackage,crypto-xts))
+
+
+define KernelPackage/crypto-hw-cavium-cpt
+  TITLE:=Cavium Cryptographic Accelerator driver
+  DEPENDS:=@TARGET_octeontx
+  KCONFIG:= \
+	CONFIG_CRYPTO_HW=y \
+  	CONFIG_CAVIUM_CPT
+  FILES:= \
+  	$(LINUX_DIR)/drivers/crypto/cavium/cpt/cptpf.ko \
+  	$(LINUX_DIR)/drivers/crypto/cavium/cpt/cptvf.ko
+  AUTOLOAD:=$(call AutoLoad,09,cptpf cptvf)
+  $(call AddDepends/crypto)
+endef
+
+$(eval $(call KernelPackage,crypto-hw-cavium-cpt))
+
+
+define KernelPackage/crypto-hw-cavium-zip
+  TITLE:=Cavium ZIP driver
+  DEPENDS:=@TARGET_octeontx +LINUX_4_14:kmod-crypto-acompress
+  KCONFIG:= \
+	CONFIG_CRYPTO_HW=y \
+  	CONFIG_CRYPTO_DEV_CAVIUM_ZIP
+  FILES:= $(LINUX_DIR)/drivers/crypto/cavium/zip/thunderx_zip.ko
+  AUTOLOAD:=$(call AutoLoad,09,thunderx_zip)
+  $(call AddDepends/crypto)
+endef
+
+$(eval $(call KernelPackage,crypto-hw-cavium-zip))
