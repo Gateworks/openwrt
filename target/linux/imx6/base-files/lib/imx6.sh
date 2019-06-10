@@ -89,6 +89,11 @@ imx6_board_detect() {
 		name="gw5912"
 		;;
 
+	"Gateworks Ventana i.MX6 DualLite/Solo GW5913" |\
+	"Gateworks Ventana i.MX6 Dual/Quad GW5913")
+		name="gw5913"
+		;;
+
 	"Wandboard i.MX6 Dual Lite Board")
 		name="wandboard"
 		;;

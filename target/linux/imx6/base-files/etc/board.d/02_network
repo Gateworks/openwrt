@@ -11,6 +11,7 @@ board=$(imx6_board_name)
 board_config_update
 
 case "$board" in
+*gw5913 |\
 *gw5912 |\
 *gw5910 |\
 *gw5907 |\

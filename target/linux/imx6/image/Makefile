@@ -139,6 +139,7 @@ define Device/ventana
 		imx6dl-gw5907 \
 		imx6dl-gw5910 \
 		imx6dl-gw5912 \
+		imx6dl-gw5913 \
 		imx6q-gw51xx \
 		imx6q-gw52xx \
 		imx6q-gw53xx \
@@ -153,7 +154,8 @@ define Device/ventana
 		imx6q-gw5904 \
 		imx6q-gw5905 \
 		imx6q-gw5910 \
-		imx6q-gw5912
+		imx6q-gw5912 \
+		imx6q-gw5913
 	DEVICE_DTS_SYMLINK := \
 		"imx6q-gw552x:imx6q-gw5906" \
 		"imx6dl-gw552x:imx6dl-gw5906" \
