@@ -1,0 +1,80 @@
+#!/bin/sh
+
+# Copyright (C) 2015 Gateworks Corporation <support@gateworks.com>
+
+# Author: Pushpal Sidhu <psidhu@gateworks.com>
+
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+## Updates feeds.conf to point to the latest git sha
+usage() {
+    local ec=${1:-0}
+    local prog="${0##*/}"
+
+    cat <<EOF
+${prog} <feeds file> [<branch>]
+EOF
+
+    exit ${ec}
+}
+
+# Require 1 input (location to feeds.conf.default file)
+[ "$#" -lt 1 ] && usage 1
+
+FEEDS="${1}"
+BRANCH="${2}"
+
+# Fail if feeds is not a file
+[ ! -f ${FEEDS} ] && usage 2
+
+oIFS="${IFS}"
+IFS=$(printf '\n\r')
+for line in $(cat ${FEEDS}); do
+    # Trim whitespace around line
+    line=$(printf "${line}" | sed -e 's/^ *//' -e 's/ *$//')
+
+    # Skip all non-git feeds
+    case "${line}" in
+        "src-git"*) printf "Updating '${line}'...\n";;
+        "src"*|"#src"*) printf "Skipping '${line}'...\n"
+                        continue;;
+        *) continue;;
+    esac
+
+    beginning=$(printf "${line}" | cut -d' ' -f1-2)
+    remote=$(printf "${line}" | cut -d' ' -f3 | cut -d'^' -f1)
+
+    # Use BRANCH as remote branch, else guess
+    [ "${BRANCH}" ] && sha=$(git ls-remote -h ${remote} ${BRANCH})
+    [ "${BRANCH}" ] || {
+        # First, attempt to match 'this' branch name, else try master
+        sha=$(git ls-remote -h ${remote} $(git rev-parse --abbrev-ref HEAD))
+        [ ${sha} ] || sha=$(git ls-remote -h ${remote} master)
+    }
+
+    # Can't find sha for this git branch, warn and skip
+    [ "${sha}" ] || {
+        printf "WARNING: Can't get sha for ${remote}, skipping...\n"
+        continue
+    }
+
+    # Get first 8 characters of sha to use for pin
+    sha=$(printf "${sha}" | head -n1 | awk -F" " '{print substr ($1, 0, 8)}')
+
+    # Write to file
+    sed -i -e "s~.*${remote}.*~${beginning} ${remote}^${sha}~g" ${FEEDS}
+done
+IFS="${oIFS}"
+
+exit 0
