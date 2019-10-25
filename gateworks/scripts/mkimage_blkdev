@@ -1,0 +1,229 @@
+#!/bin/bash
+
+# Copyright (C) 2016 Gateworks Corporation <support@gateworks.com>
+
+# Author: Pushpal Sidhu <psidhu@gateworks.com>
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+## Code:
+# unset specific global variables
+unset tmp_mnt FILES BLOCK_DEV SPL BOOTLOADER UBOOTENV cmds_not_found
+
+# Cleanup tmp files
+cleanup() {
+    local ec=$?
+
+    [ -e "${tmp_mnt}" ] && {
+        printf "Unmounting ${BLOCK_DEV}1\n"
+        umount ${tmp_mnt}
+        local uec=$?
+        rm -rf ${tmp_mnt}
+    }
+    sync
+
+    [ ${ec} -eq 0 -a ${uec:-0} -eq 0 ] && \
+        printf "You may now safely remove ${BLOCK_DEV}\n"
+}
+trap cleanup 0 # 0 - execute on script exit
+
+# remove leading/trailing whitespace
+trim() {
+    printf "${*}"
+}
+
+printerr() {
+    printf "ERROR:${@}" 1>&2
+}
+
+dev_list() {
+    for sd in /sys/block/sd*;  do
+        if readlink -f ${sd}/device | grep -q usb &&
+                [ "$(cat ${sd}/removable)" = 1 -a "$(cat ${sd}/size)" != 0 ]; then
+            printf "${sd##*/} "
+        fi
+    done
+
+    for mmc in /sys/block/mmcblk*; do
+        if readlink -f ${mmc}/device | grep -q mmc; then
+            printf "${mmc##*/} "
+        fi
+    done
+}
+
+print_devs() {
+    for dev in $(dev_list); do
+        local size=$(($(cat /sys/block/${dev}/size) * 512))
+        printf " %s: %s %s %sGB\n" \
+               "/dev/${dev}" \
+               "$(trim $(cat /sys/block/${dev}/device/vendor))" \
+               "$(trim $(cat /sys/block/${dev}/device/model))" \
+               "$(printf ${size} | awk '{gb=$1/1024/1024/1024;print gb}')"
+    done
+}
+
+# $1 - (optional) exit code
+usage() {
+    local ec="${1:-0}"
+    local p="${0##*/}"
+
+    printf "%s\n" \
+           "Usage: " \
+           "${p} /dev/sdX file1.tar[.gz|.bz2] [file2.tar[.gz|.bz2] ...] [<SPL> <u-boot.img> [env]]" ""\
+           "Note that paths given for optional arguments SPL & u-boot.img must point to files " \
+           "using the same name (case sensitive) and are codependent." "" \
+           "The following block devices were found:"
+    print_devs
+
+    exit ${ec}
+}
+
+## Main
+# Parse args
+while [ "${1}" ]; do
+    case "${1}" in
+        *.tar*) # Only add if file exists
+            [ ! -r "${1}" ] && printerr "'${1}' is not a readable file, skip\n"
+            [ -r "${1}" ] && FILES="${FILES} ${1}"
+            ;;
+        /dev/*) BLOCK_DEV="${1}";;
+        *SPL*) SPL="${1}";;
+        *u-boot*.img) BOOTLOADER="${1}";;
+        *env) UBOOTENV="${1}";;
+        *) printerr "'${1}' is not a valid argument, skipping\n";;
+    esac
+    shift
+done
+# validate input
+[ ! "${FILES}" -o ! "${BLOCK_DEV}" ] && usage 1
+
+# validate that both or neither of SPL/BOOTLOADER are passed
+[ -z "$SPL" -a -z "$BOOTLOADER" ] || [ "$SPL" -a "$BOOTLOADER" ] || {
+    printerr "Must pass in both a SPL & u-boot.img file, or neither\n"
+    usage 1
+}
+
+[ "$SPL" -a "$BOOTLOADER" ] && {
+    # verify file paths of SPL and u-boot.img
+    for i in $SPL $BOOTLOADER; do
+       [ -f "$i" ] || printerr "file not found: $i\n"
+    done
+}
+
+for cmd in blockdev readlink awk grep cat tar mktemp mount umount sfdisk mkfs.ext4; do
+    which ${cmd} 2>&1 >/dev/null
+    [ $? -ne 0 ] && cmds_not_found="${cmds_not_found} '${cmd}'"
+done
+[ "${cmds_not_found}" ] && {
+    printerr "The following commands were not found on this system:\n%s\n" \
+             "${cmds_not_found}"
+    exit 2
+}
+
+[ ! -b "${BLOCK_DEV}" ] && {
+    printerr "'${BLOCK_DEV}' isn't a block device!\n"
+    printf "The following block devices were found:\n"
+    print_devs
+    exit 3
+}
+
+found=
+for dev in $(dev_list); do
+    [ "/dev/${dev}" = "${BLOCK_DEV}" ] && found="${dev}"
+done
+[ ! "${found}" ] && {
+    [ "${FORCE}" ] || {
+        printerr "'${BLOCK_DEV}' not found to be a 'block storage device'\n"
+        printerr "To force flashing, re-run with env FORCE=1\n"
+        printf "The following block devices were found:\n"
+        print_devs
+        exit 4
+    }
+}
+
+if [ $(cat /sys/class/block/${found}/ro) -eq 1 ]; then
+    printerr "'${BLOCK_DEV}' is read-only, bailing...\n"
+    exit 5
+fi
+
+if mount | grep -q ${BLOCK_DEV}; then
+    printerr "'${BLOCK_DEV}' is mounted, please unmount:\n"
+    mount | grep ${BLOCK_DEV}
+    exit 6
+fi
+
+# Finally, check if root and flash
+[ ${EUID} -ne 0 ] && {
+    printerr "Please re-run as root\n"
+    exit 7
+}
+
+[ "$SPL" -a "$BOOTLOADER" ] && {
+    echo "Installing SPL & U-Boot"
+    # Write SPL (at 1KB offset)
+    echo "  installing SPL @ 1K offset..."
+    dd if=$SPL of=$BLOCK_DEV bs=1K seek=1 oflag=sync status=none || \
+        printerr "installation failed, bailing\n"
+
+    # Write UBOOT (at 69K offset)
+    echo "  installing UBOOT @ 69K offset..."
+    dd if=$BOOTLOADER of=$BLOCK_DEV bs=1K seek=69 oflag=sync status=none || \
+        printerr "installation failed, bailing\n"
+
+    # Write ENV (at 709KB offset) if present
+    [ "$UBOOTENV" -a -r "$UBOOTENV" ] && {
+      echo "  installing ENV @ 709K offset..."
+      dd if=$UBOOTENV of=$BLOCK_DEV bs=1K seek=709 oflag=sync status=none || \
+          printerr "installation failed, bailing\n"
+    }
+    sync
+}
+
+echo "Partitioning..."
+# Create partitions
+# 1:rootfs ext4 (skip first MiB for SPL and bootloader)
+sfdisk --force --quiet --no-reread -uS ${BLOCK_DEV} <<EOF
+2048,,L,*
+EOF
+[ $? -ne 0 ] && {
+    printerr "sfdisk failed, bailing\n"
+    exit 8
+}
+sync
+
+blockdev --rereadpt ${BLOCK_DEV}
+
+# Create fs
+printf "Creating ext4 filesystem on ${BLOCK_DEV}1...\n"
+mkfs.ext4 -q -F -L rootfs ${BLOCK_DEV}1 1>/dev/null
+[ $? -ne 0 ] && {
+    printerr "mkfs.ext4 failed, bailing\n"
+    exit 9
+}
+sync
+
+tmp_mnt=$(mktemp -d -p/tmp)
+mount ${BLOCK_DEV}1 ${tmp_mnt}
+
+for file in ${FILES}; do
+    printf "Extracting ${file}, please wait...\n"
+    tar -xf ${file} -C ${tmp_mnt}
+done
+
+tot=$(du -shc ${tmp_mnt} | cut -d' ' -f1 | tail -n1)
+printf "Please wait for data to be flushed (%s extracted)\n" "$(trim ${tot})"
+sync
+
+# unmounting occurs in cleanup()
+exit 0

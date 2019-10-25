@@ -1,0 +1,48 @@
+#!/bin/sh
+
+set -x
+[ $# -eq 7 ] || {
+	echo "usage: $0 <outfile> <spl> <uboot.img> <bootfs image> <rootfs image> <bootfs size> <rootfs size>"
+	exit 1
+}
+
+PATH=../../staging_dir/host/bin:$PATH
+
+OUTPUT="$1"
+SPL="$2"
+UBOOT="$3"
+BOOTFSDIR="$4"
+ROOTFS="$5"
+BOOTFSSIZE="$6"
+ROOTFSSIZE="$7"
+
+head=16
+sect=63
+
+# create partition table
+set $(ptgen -o $OUTPUT -h $head -s $sect -t 83 -p ${BOOTFSSIZE}M -t 83 -p ${ROOTFSSIZE}M)
+BOOTOFFSET="$(($1 / 512))"
+BOOTSIZE="$2"
+ROOTFSOFFSET="$(($3 / 512))"
+ROOTFSSIZE="$(($4 / 512))"
+
+bootfs=$(mktemp)
+if [ -d "$BOOTFSDIR" ]; then
+	make_ext4fs -J -L kernel -l "$BOOTSIZE" $bootfs "$BOOTFSDIR"
+else
+	bootfsdir=$(mktemp -d -p/tmp)
+	tar xvf "$BOOTFSDIR" -C $bootfsdir 
+	make_ext4fs -J -L kernel -l "$BOOTSIZE" $bootfs "$bootfsdir"
+	rm -rf $bootfsdir
+fi
+
+dd if="$SPL" of="$OUTPUT" bs=1024 seek=1 conv=notrunc
+dd if="$UBOOT" of="$OUTPUT" bs=1024 seek=69 conv=notrunc
+dd if="$bootfs" of="$OUTPUT" bs=512 seek="$BOOTOFFSET" conv=notrunc
+(
+	cat "$ROOTFS"
+	# add padding to avoid leaving behind old overlay fs data
+	dd if=/dev/zero bs=128k count=1 2>/dev/null
+) | dd of="$OUTPUT" bs=512 seek="$ROOTFSOFFSET" conv=notrunc
+
+rm $bootfs
