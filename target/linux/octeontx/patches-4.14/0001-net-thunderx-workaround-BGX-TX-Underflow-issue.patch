@@ -17,15 +17,15 @@ Index: linux-4.14.13/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
 ===================================================================
 --- linux-4.14.13.orig/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
 +++ linux-4.14.13/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
-@@ -56,6 +56,7 @@ struct bgx {
+@@ -55,6 +55,7 @@ struct bgx {
+ 	struct pci_dev		*pdev;
  	bool                    is_dlm;
  	bool                    is_rgx;
- 	int			phy_mode;
 +	char			irq_name[7];
  };
  
  static struct bgx *bgx_vnic[MAX_BGX_THUNDER];
-@@ -1344,6 +1345,53 @@ static int bgx_init_phy(struct bgx *bgx)
+@@ -1340,6 +1341,54 @@ static int bgx_init_phy(struct bgx *bgx)
  	return bgx_init_of_phy(bgx);
  }
  
@@ -40,7 +40,7 @@ Index: linux-4.14.13/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
 +		status = bgx_reg_read(bgx, lmac, BGX_GMP_GMI_TXX_INT);
 +		if (status & GMI_TXX_INT_UNDFLW) {
 +			dev_err(dev, "BGX%d lmac%d UNDFLW\n", bgx->bgx_id,
-+				lmac);
++					lmac);
 +			val = bgx_reg_read(bgx, lmac, BGX_CMRX_CFG);
 +			val &= ~CMR_EN;
 +			bgx_reg_write(bgx, lmac, BGX_CMRX_CFG, val);
@@ -69,18 +69,19 @@ Index: linux-4.14.13/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
 +	}
 +	sprintf(bgx->irq_name, "BGX%d", bgx->bgx_id);
 +	ret = request_irq(pci_irq_vector(pdev, GMPX_GMI_TX_INT),
-+		bgx_intr_handler, 0, bgx->irq_name, bgx);
++			bgx_intr_handler, 0, bgx->irq_name, bgx);
 +	if (ret)
 +		return 1;
 +
 +	return 0;
 +}
 +
++
  static int bgx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
  {
  	int err;
-@@ -1414,6 +1462,8 @@ static int bgx_probe(struct pci_dev *pde
- 		xcv_init_hw(bgx->phy_mode);
+@@ -1409,6 +1458,8 @@ static int bgx_probe(struct pci_dev *pde
+ 
  	bgx_init_hw(bgx);
  
 +	bgx_register_intr(pdev);
@@ -88,7 +89,7 @@ Index: linux-4.14.13/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
  	/* Enable all LMACs */
  	for (lmac = 0; lmac < bgx->lmac_count; lmac++) {
  		err = bgx_lmac_enable(bgx, lmac);
-@@ -1424,6 +1474,10 @@ static int bgx_probe(struct pci_dev *pde
+@@ -1419,6 +1470,11 @@ static int bgx_probe(struct pci_dev *pde
  				bgx_lmac_disable(bgx, --lmac);
  			goto err_enable;
  		}
@@ -96,6 +97,7 @@ Index: linux-4.14.13/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
 +		/* enable TX FIFO Underflow interrupt */
 +		bgx_reg_modify(bgx, lmac, BGX_GMP_GMI_TXX_INT_ENA_W1S,
 +			       GMI_TXX_INT_UNDFLW);
++
  	}
  
  	return 0;

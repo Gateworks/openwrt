@@ -1,0 +1,27 @@
+From d8992deb3207c496c672d7c4538193cb1fe89641 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Fri, 7 Feb 2020 11:57:06 -0800
+Subject: [PATCH] net: thunderx: fix invalid RGMII phy type
+
+The phy type is RGMII_ID as the OcteonTX is configured to enable an
+internal TX delay on its end. This resolves RGMII issues when used
+with phy drivers.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/net/ethernet/cavium/thunder/thunder_bgx.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: linux-4.14.13/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
+===================================================================
+--- linux-4.14.13.orig/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
++++ linux-4.14.13/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
+@@ -847,7 +847,7 @@ static int phy_interface_mode(u8 lmac_ty
+ 	if (lmac_type == BGX_MODE_QSGMII)
+ 		return PHY_INTERFACE_MODE_QSGMII;
+ 	if (lmac_type == BGX_MODE_RGMII)
+-		return PHY_INTERFACE_MODE_RGMII;
++		return PHY_INTERFACE_MODE_RGMII_RXID;
+ 
+ 	return PHY_INTERFACE_MODE_SGMII;
+ }
