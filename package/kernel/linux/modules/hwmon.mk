@@ -152,6 +152,23 @@ endef
 $(eval $(call KernelPackage,hwmon-f71882fg))
 
 
+define KernelPackage/hwmon-gsc
+  TITLE:=Gateworks System Controller monitoring support
+  KCONFIG:= \
+	CONFIG_MFD_GATEWORKS_GSC=y \
+	CONFIG_SENSORS_GSC
+  FILES:=$(LINUX_DIR)/drivers/hwmon/gsc-hwmon.ko
+  AUTOLOAD:=$(call AutoProbe,gsc-hwmon)
+  $(call AddDepends/hwmon,@LINUX_5_4 @(TARGET_imx6||TARGET_octeontx) +kmod-i2c-core)
+endef
+
+define KernelPackage/hwmon-gsc/description
+ Kernel module for Gateworks System Controller hwmon
+endef
+
+$(eval $(call KernelPackage,hwmon-gsc))
+
+
 define KernelPackage/hwmon-ina209
   TITLE:=INA209 monitoring support
   KCONFIG:=CONFIG_SENSORS_INA209
