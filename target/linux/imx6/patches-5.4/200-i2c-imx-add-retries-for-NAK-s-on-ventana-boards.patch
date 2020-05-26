@@ -1,0 +1,42 @@
+From be183fc2af49e6020bb0b1ac8359351707383f63 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Tue, 12 May 2020 12:41:32 -0700
+Subject: [PATCH] i2c: imx: add retries for NAK's on ventana boards
+
+Ventana boards have a Gateworks System Controller (gsc) module that can
+nak i2c transactions when its busy in an ADC loop. In order to not have to
+hack up the pca953x and ds1672 device drivers which the GSC emulates we will
+just add i2c retries around NAK's.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/i2c/busses/i2c-imx.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/i2c/busses/i2c-imx.c b/drivers/i2c/busses/i2c-imx.c
+index a3b6133..b2378d8 100644
+--- a/drivers/i2c/busses/i2c-imx.c
++++ b/drivers/i2c/busses/i2c-imx.c
+@@ -467,6 +467,8 @@ static int i2c_imx_acked(struct imx_i2c_struct *i2c_imx)
+ {
+ 	if (imx_i2c_read_reg(i2c_imx, IMX_I2C_I2SR) & I2SR_RXAK) {
+ 		dev_dbg(&i2c_imx->adapter.dev, "<%s> No ACK\n", __func__);
++		if (i2c_imx->adapter.retries)
++			return -EAGAIN;
+ 		return -ENXIO;  /* No ACK */
+ 	}
+ 
+@@ -1097,6 +1099,10 @@ static int i2c_imx_probe(struct platform_device *pdev)
+ 	i2c_imx->adapter.dev.of_node	= pdev->dev.of_node;
+ 	i2c_imx->base			= base;
+ 	ACPI_COMPANION_SET(&i2c_imx->adapter.dev, ACPI_COMPANION(&pdev->dev));
++	if (of_machine_is_compatible("gw,ventana") && phy_addr == 0x021a0000) {
++		dev_info(&pdev->dev, "Adding retries for Ventana GSC\n");
++		i2c_imx->adapter.retries = 3;
++	}
+ 
+ 	/* Get I2C clock */
+ 	i2c_imx->clk = devm_clk_get(&pdev->dev, NULL);
+-- 
+2.7.4
+
