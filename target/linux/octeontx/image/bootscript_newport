@@ -1,0 +1,36 @@
+# Standard Boot-Script for booting OpenWrt
+#  - use only well-known variable names provided by U-Boot Distro boot
+#    - devnum - device number script run from (0 based int)
+#    - devtype - device type script run from (mmc|usb|scsi)
+#    - distro_bootpart - partition script run from (0 based int)
+#    - prefix - directory boot script was found in
+#    - kernel_addr_r - address to load kernel image to
+#    - ftdcontroladdr - address dtb is at
+#
+#  - assume kernel.itb on same dev:part:dir script was found in
+#  - rootfs is on the dev script was found on and the 'next' partition
+#
+
+echo "Newport OpenWrt Boot Script"
+
+# generate bootargs for rootfs based on devtype
+setexpr rootpart ${distro_bootpart} + 1 # root on 'next' partition
+part uuid ${devtype} ${devnum}:${rootpart} uuid
+setenv bootargs ${bootargs} root=PARTUUID=${uuid} rootfstype=squashfs,f2fs rootwait
+
+# disable USB autosuspend (CN81xx errata)
+setenv bootargs ${bootargs} usbcore.autosuspend=-1
+
+# disable KPTI (expected chip errata)
+setenv bootargs ${bootargs} kpti=0
+
+# add console= option to bootargs, if any
+if test -n "${console}"; then
+        setenv bootargs ${bootargs} console=${console}
+fi
+echo "bootargs:${bootargs}"
+
+# load and boot kernel
+echo "Loading kernel.itb from ${devtype} ${devnum}:${distro_bootpart} ${prefix}"
+load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} ${prefix}kernel.itb
+bootm ${kernel_addr_r} - ${fdtcontroladdr}

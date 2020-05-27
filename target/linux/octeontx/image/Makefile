@@ -16,6 +16,9 @@ define Image/Build
 	$(call Image/Build/$(1))
 	cp $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-$(1).img
 	cp $(KDIR)/vmlinux $(BIN_DIR)/$(IMG_PREFIX)-vmlinux
+	./gen_image.sh $(BIN_DIR)/$(IMG_PREFIX).img.gz  \
+		$(BIN_DIR)/$(IMG_PREFIX)-vmlinux \
+		$(KDIR)/root.$(1)
 endef
 
 $(eval $(call BuildImage))
