@@ -28,6 +28,14 @@ define Build/boot-overlay
 			$(IMG_PREFIX)-$(dts).dtb \
 			$@.boot/$(dts).dtb; \
 	)
+	$(foreach dts,$(shell echo $(DEVICE_DTS_SYMLINK)), \
+		ln -sf \
+			$(IMG_PREFIX)-$(word 1, $(subst :, ,$(dts))).dtb \
+			$@.boot/$(IMG_PREFIX)-$(word 2, $(subst :, ,$(dts))).dtb; \
+		ln -sf \
+			$(IMG_PREFIX)-$(word 1, $(subst :, ,$(dts))).dtb \
+			$@.boot/$(word 2, $(subst :, ,$(dts))).dtb; \
+	)
 	mkimage -A arm -O linux -T script -C none -a 0 -e 0 \
 		-n '$(DEVICE_ID) OpenWrt bootscript' \
 		-d ./bootscript-$(DEVICE_NAME) \
@@ -160,6 +168,13 @@ define Device/ventana
 	imx6q-gw5910 \
 	imx6q-gw5912 \
 	imx6q-gw5913
+  DEVICE_DTS_SYMLINK := \
+	"imx6q-gw552x:imx6q-gw5906" \
+	"imx6dl-gw552x:imx6dl-gw5906" \
+	"imx6q-gw53xx:imx6q-gw5908" \
+	"imx6dl-gw53xx:imx6dl-gw5908" \
+	"imx6q-gw5904:imx6q-gw5909" \
+	"imx6dl-gw5904:imx6dl-gw5909"
   DEVICE_PACKAGES := kmod-sky2 kmod-sound-core kmod-sound-soc-imx kmod-sound-soc-imx-sgtl5000 \
 	kmod-can kmod-can-flexcan kmod-can-raw \
 	kmod-hwmon-gsc \
