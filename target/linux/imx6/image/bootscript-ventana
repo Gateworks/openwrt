@@ -1,4 +1,4 @@
-echo "Gateworks Ventana OpenWrt Boot script v1.02"
+echo "Gateworks Ventana OpenWrt Boot script v1.03"
 
 # set some defaults
 # set some defaults
@@ -43,24 +43,38 @@ if itest.s "x${dtype}" == "xnand" ; then
 	setenv fsload ubifsload
 	setenv root "ubi0:ubi ubi.mtd=2 rootfstype=squashfs,ubifs"
 else
-	setenv fsload "${fs}load ${dtype} ${disk}:1"
-	part uuid ${dtype} ${disk}:1 uuid
+	# for blkdev devices we might have a board that has a nand bootloader
+	# and a single-partition blkdev that contains kernel/dt/script in /boot
+	# in which case rootpart=1 and rootfstype=${fs} or we could have
+	# a linux boot partition containing kernel/dt/script and
+	# a 2nd partition with a squashfs rootfs overlay where rootpart=2
+	setenv bootpart 1
+	# set fsload (used to load kernel/fdt from bootpart)
+	setenv fsload "${fs}load ${dtype} ${disk}:${bootpart}"
+	# if /sbin/init exists on bootpart assume rootpart=1 else rootpart=2
+	if ${fsload} ${loadaddr} sbin/init; then
+		setenv rootpart 1
+		setenv rootargs "rootfstype=${fs} rootwait rw"
+	else
+		setenv rootpart 2
+		setenv rootargs "rootfstype=squashfs,f2fs rootwait"
+	fi
+	part uuid ${dtype} ${disk}:${rootpart} uuid
 	if test -z "${uuid}"; then
 		# fallback to bootdev
 		if test -n "$bootdev" ; then
 			echo "Using bootdev from env: $bootdev"
 		else
 			if itest.s "x${dtype}" == "xmmc" ; then
-				bootdev=mmcblk0p1
+				bootdev=mmcblk0p${rootpart}
 			else
-				bootdev=sda1
+				bootdev=sda${rootpart}
 			fi
 		fi
-		setenv root "root=/dev/${bootdev}"
+		setenv root "root=/dev/${bootdev} ${rootargs}"
 	else
-		setenv root "root=PARTUUID=${uuid}"
+		setenv root "root=PARTUUID=${uuid} ${rootargs}"
 	fi
-	setenv root "$root rootfstype=${fs} rootwait rw"
 fi
 
 setenv bootargs "${bootargs}" "${root}" "${video}" "${extra}"
