@@ -5,6 +5,7 @@
 . /lib/upgrade/common.sh
 
 move_config() {
+	local partdev
 	local board=$(board_name)
 
 	case "$board" in
@@ -13,6 +14,13 @@ move_config() {
 			apalis_mount_boot
 			[ -f "/boot/$BACKUP_FILE" ] && mv -f "/boot/$BACKUP_FILE" /
 			umount /boot
+		fi
+		;;
+	gw5904)
+		if export_bootdevice && export_partdevice partdev 1; then
+			mount -o rw,noatime "/dev/$partdev" /mnt
+			[ -f "/mnt/$BACKUP_FILE" ] && mv -f "/mnt/$BACKUP_FILE" /
+			umount /mnt
 		fi
 		;;
 	esac
