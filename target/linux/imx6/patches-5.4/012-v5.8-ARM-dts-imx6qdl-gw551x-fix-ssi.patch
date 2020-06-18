@@ -1,0 +1,13 @@
+Index: linux-5.4.28/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+===================================================================
+--- linux-5.4.28.orig/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
++++ linux-5.4.28/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+@@ -110,7 +110,7 @@
+ 			format = "i2s";
+ 
+ 			cpu {
+-				sound-dai = <&ssi2>;
++				sound-dai = <&ssi1>;
+ 			};
+ 
+ 			codec {
