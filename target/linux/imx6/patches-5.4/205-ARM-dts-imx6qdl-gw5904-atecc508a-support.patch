@@ -1,0 +1,31 @@
+From 8d2b6060ca381265154ec181e9be1bb45d7b5a2d Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 21 May 2020 12:08:08 -0700
+Subject: [PATCH] ARM: dts: imx6qdl-gw5904: atecc508a support
+
+Add one node for the Atmel ATECC508A 'CryptoAuthentication' i2c device.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ arch/arm/boot/dts/imx6qdl-gw5904.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6qdl-gw5904.dtsi b/arch/arm/boot/dts/imx6qdl-gw5904.dtsi
+index 76d6cf5..55785a3 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw5904.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw5904.dtsi
+@@ -330,6 +330,11 @@
+ 		};
+ 	};
+ 
++	crypto@60 {
++		compatible = "atmel,atecc508a";
++		reg = <0x60>;
++	};
++
+ 	imu@6a {
+ 		compatible = "st,lsm9ds1-imu";
+ 		reg = <0x6a>;
+-- 
+2.7.4
+
