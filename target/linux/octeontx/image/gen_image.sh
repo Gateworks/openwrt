@@ -25,7 +25,7 @@ cp ${TMPDIR}/firmware-newport.img .img
 
 # create kernel.itb and .scr
 gzip $KERNELIMAGE -c > .vmlinux.gz
-mkits.sh \
+${TOPDIR}/scripts/mkits.sh \
 	-A arm64 -a $LOADADDR -e $LOADADDR \
 	-o .its -k .vmlinux.gz -C gzip \
 	-v "OpenWrt" -c "config@1"
