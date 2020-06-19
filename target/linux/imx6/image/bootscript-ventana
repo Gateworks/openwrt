@@ -42,8 +42,6 @@ if itest.s "x${dtype}" == "xnand" ; then
 	echo "mtdparts:${mtdparts}"
 	setenv fsload ubifsload
 	setenv root "ubi0:ubi ubi.mtd=2 rootfstype=squashfs,ubifs"
-	# enable UBI fastmap support
-	setenv bootargs "${bootargs} ubi.fm_autoconvert=1"
 else
 	setenv fsload "${fs}load ${dtype} ${disk}:1"
 	part uuid ${dtype} ${disk}:1 uuid
