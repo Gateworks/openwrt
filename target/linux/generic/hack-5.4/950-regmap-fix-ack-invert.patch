@@ -1,0 +1,48 @@
+From 83e7707a256a576897450ae92dc856d87d80763f Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Tue, 27 Feb 2018 07:51:42 -0800
+Subject: [PATCH] regmap: fix ack-invert
+
+When acking irqs we need to take into account the ack-invert case.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/base/regmap/regmap-irq.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/base/regmap/regmap-irq.c b/drivers/base/regmap/regmap-irq.c
+index 3d64c93..df3ee4c 100644
+--- a/drivers/base/regmap/regmap-irq.c
++++ b/drivers/base/regmap/regmap-irq.c
+@@ -488,16 +488,24 @@ static irqreturn_t regmap_irq_thread(int irq, void *d)
+ 	 * doing a write per register.
+ 	 */
+ 	for (i = 0; i < data->chip->num_regs; i++) {
+-		data->status_buf[i] &= ~data->mask_buf[i];
+-
+-		if (data->status_buf[i] && (chip->ack_base || chip->use_ack)) {
++		if ( (data->status_buf[i] & ~data->mask_buf[i]) &&
++		     (chip->ack_base || chip->use_ack) ) {
+ 			reg = chip->ack_base +
+ 				(i * map->reg_stride * data->irq_reg_stride);
+-			ret = regmap_write(map, reg, data->status_buf[i]);
++			/* some chips ack by write 0 */
++			if (chip->ack_invert)
++				ret = regmap_write(map, reg,
++						   ~data->status_buf[i] &
++						   data->mask_buf[i]);
++			else
++				ret = regmap_write(map, reg,
++						   data->status_buf[i] &
++						   ~data->mask_buf[i]);
+ 			if (ret != 0)
+ 				dev_err(map->dev, "Failed to ack 0x%x: %d\n",
+ 					reg, ret);
+ 		}
++		data->status_buf[i] &= ~data->mask_buf[i];
+ 	}
+ 
+ 	for (i = 0; i < chip->num_irqs; i++) {
+-- 
+2.7.4
+
