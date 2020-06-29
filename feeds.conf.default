@@ -1,7 +1,7 @@
 # Generic Gateworks package feed
 src-git gateworks https://github.com/Gateworks/gw-openwrt-packages.git;20.06
 # Upstream OpenWRT package feeds
-src-git packages https://git.openwrt.org/feed/packages.git^7e3d046a
+src-git packages https://github.com/Gateworks/openwrt-packages;20.06
 src-git luci https://git.openwrt.org/project/luci.git^d0a2566a
 src-git routing https://git.openwrt.org/feed/routing.git^83a3fa91
 src-git telephony https://git.openwrt.org/feed/telephony.git^ea6d48b6
