@@ -417,6 +417,7 @@ CONFIG_PACKAGE_luci-proto-relay=y
 CONFIG_PACKAGE_luci-theme-bootstrap=y
 CONFIG_PACKAGE_luci-theme-openwrt=y
 CONFIG_PACKAGE_miniupnpd=y
+CONFIG_PACKAGE_mmc-utils=y
 CONFIG_PACKAGE_netcat=y
 CONFIG_PACKAGE_netdiscover=y
 CONFIG_PACKAGE_ntpclient=y
