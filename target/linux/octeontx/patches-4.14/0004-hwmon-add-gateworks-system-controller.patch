@@ -1,0 +1,29 @@
+Index: linux-4.14.13/drivers/hwmon/Kconfig
+===================================================================
+--- linux-4.14.13.orig/drivers/hwmon/Kconfig
++++ linux-4.14.13/drivers/hwmon/Kconfig
+@@ -475,6 +475,12 @@ config SENSORS_F75375S
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called f75375s.
+ 
++config SENSORS_GSC
++        tristate "Gateworks System Controller ADC"
++        depends on MFD_GSC
++        help
++          Support for the Gateworks System Controller A/D converters.
++
+ config SENSORS_MC13783_ADC
+         tristate "Freescale MC13783/MC13892 ADC"
+         depends on MFD_MC13XXX
+Index: linux-4.14.13/drivers/hwmon/Makefile
+===================================================================
+--- linux-4.14.13.orig/drivers/hwmon/Makefile
++++ linux-4.14.13/drivers/hwmon/Makefile
+@@ -69,6 +69,7 @@ obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
+ obj-$(CONFIG_SENSORS_G762)	+= g762.o
+ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
++obj-$(CONFIG_SENSORS_GSC)	+= gsc-hwmon.o
+ obj-$(CONFIG_SENSORS_GPIO_FAN)	+= gpio-fan.o
+ obj-$(CONFIG_SENSORS_HIH6130)	+= hih6130.o
+ obj-$(CONFIG_SENSORS_ULTRA45)	+= ultra45_env.o

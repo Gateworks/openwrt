@@ -1,0 +1,33 @@
+Index: linux-4.14.13/drivers/mfd/Kconfig
+===================================================================
+--- linux-4.14.13.orig/drivers/mfd/Kconfig
++++ linux-4.14.13/drivers/mfd/Kconfig
+@@ -341,6 +341,16 @@ config MFD_EXYNOS_LPASS
+ 	  Select this option to enable support for Samsung Exynos Low Power
+ 	  Audio Subsystem.
+ 
++config MFD_GSC
++	tristate "Gateworks System Controller"
++	depends on (I2C && OF)
++	select MFD_CORE
++	select REGMAP_I2C
++	select REGMAP_IRQ
++	help
++	  Enable support for the Gateworks System Controller found
++	  on Gateworks Single Board Computers.
++
+ config MFD_MC13XXX
+ 	tristate
+ 	depends on (SPI_MASTER || I2C)
+Index: linux-4.14.13/drivers/mfd/Makefile
+===================================================================
+--- linux-4.14.13.orig/drivers/mfd/Makefile
++++ linux-4.14.13/drivers/mfd/Makefile
+@@ -18,6 +18,7 @@ obj-$(CONFIG_MFD_CROS_EC)	+= cros_ec_cor
+ obj-$(CONFIG_MFD_CROS_EC_I2C)	+= cros_ec_i2c.o
+ obj-$(CONFIG_MFD_CROS_EC_SPI)	+= cros_ec_spi.o
+ obj-$(CONFIG_MFD_EXYNOS_LPASS)	+= exynos-lpass.o
++obj-$(CONFIG_MFD_GSC)		+= gsc.o
+ 
+ rtsx_pci-objs			:= rtsx_pcr.o rts5209.o rts5229.o rtl8411.o rts5227.o rts5249.o
+ obj-$(CONFIG_MFD_RTSX_PCI)	+= rtsx_pci.o
