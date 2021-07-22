@@ -41,24 +41,30 @@ num="$(( $(hex_le32_to_cpu $3) ))"
 	echo "Error: invalid partition type in boot firmware"
 	exit 1
 }
-dd if=.img of=.fatfs bs=512 skip=$lba count=$num
 
-# inject kernel/scr
-mcopy -i .fatfs .itb ::kernel.itb
-mcopy -i .fatfs .scr ::newport.scr
+# generate partition table
+# (we use our own tool as the openwrt ptgen does not allow gaps)
+./ptgen -o .img -p 1:$lba:$num -p 0x83:16M:16M  -p 0x83:32M:$((7248-32))M
 
-# copy it back
-dd if=.fatfs of=.img bs=512 seek=$lba
+# create an ext4 fs with kernel/script
+bootfsdir=$(mktemp -d -p/tmp)
+cp .scr $bootfsdir/newport.scr
+cp .itb $bootfsdir/kernel.itb
+make_ext4fs -J -L boot -l 16M .bootfs $bootfsdir
+rm -rf $bootfsdir
+
+# concatenate bootfs
+dd if=.bootfs of=.img bs=16M seek=1
 
 # concatenate rootfs and some padding (to avoid leaving behind old overlay fs)
 (
 	cat $ROOTFSIMAGE
 	dd if=/dev/zero bs=128k count=1 2>/dev/null
-) | dd of=.img bs=16M seek=1
+) | dd of=.img bs=32M seek=1
 
 # compress
 gzip .img
 mv .img.gz $OUTPUT
 
 # cleanup
-rm -f .vmlinux.gz .its .itb .scr .fatfs
+rm -f .vmlinux.gz .its .itb .scr .bootfs .fatfs
