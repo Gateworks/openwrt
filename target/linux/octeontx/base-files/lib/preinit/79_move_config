@@ -1,0 +1,24 @@
+. /lib/functions.sh
+. /lib/upgrade/common.sh
+
+move_config() {
+	local partdev
+
+	case $(board_name) in
+	gw,gw610x|\
+	gw,gw620x|\
+	gw,gw630x|\
+	gw,gw640x|\
+	gw,gw6903)
+		export_bootdevice && export_partdevice partdev 2 && {
+			mount -o rw,noatime "/dev/$partdev" /mnt
+			[ -f "/mnt/$BACKUP_FILE" ] && {
+				mv -f "/mnt/$BACKUP_FILE" /
+			}
+			umount /mnt
+		}
+		;;
+	esac
+}
+
+boot_hook_add preinit_mount_root move_config
