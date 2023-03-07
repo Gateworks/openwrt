@@ -1,0 +1,38 @@
+From 874cfd54e9ce7f309b83767b7a2102a7606fa40b Mon Sep 17 00:00:00 2001
+From: Lucas Stach <l.stach@pengutronix.de>
+Date: Sat, 2 Oct 2021 14:48:52 +0200
+Subject: [PATCH 03/26] v5.16 soc: imx: gpcv2: allow to disable individual
+ power domains
+
+Some board designs don't supply power to all of the power domains,
+as they are not used anyways. In that case we must make sure to
+not touch those power domains at all, as trying to power up a
+domain that has no power supplied to it will obviously end in a
+system crash. Allow to disable those domains via the standard DT
+status property.
+
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Reviewed-By: Tim Harvey <tharvey@gateworks.com>
+Tested-By: Tim Harvey <tharvey@gateworks.com>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ drivers/soc/imx/gpcv2.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/soc/imx/gpcv2.c b/drivers/soc/imx/gpcv2.c
+index 443b2fdbfb76..afc309aff0f0 100644
+--- a/drivers/soc/imx/gpcv2.c
++++ b/drivers/soc/imx/gpcv2.c
+@@ -993,6 +993,9 @@ static int imx_gpcv2_probe(struct platform_device *pdev)
+ 		struct imx_pgc_domain *domain;
+ 		u32 domain_index;
+ 
++		if (!of_device_is_available(np))
++			continue;
++
+ 		ret = of_property_read_u32(np, "reg", &domain_index);
+ 		if (ret) {
+ 			dev_err(dev, "Failed to read 'reg' property\n");
+-- 
+2.25.1
+

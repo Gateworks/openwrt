@@ -1,0 +1,61 @@
+From dbb79450393a695fb39b1e66f02bd1eaa2a07994 Mon Sep 17 00:00:00 2001
+From: Lucas Stach <l.stach@pengutronix.de>
+Date: Sat, 2 Oct 2021 02:59:41 +0200
+Subject: [PATCH 04/26] v5.16 soc: imx: gpcv2: add domain option to keep domain
+ clocks enabled
+
+Some of the MIX domains are using clocks to drive the bus bridges. Those
+must be enabled at all times, as long as the domain is powered up and
+they don't have any other consumer than the power domain. Add an option
+to keep the clocks attached to a domain enabled as long as the domain
+is power up and only disable them after the domain is powered down.
+
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Reviewed-by: Peng Fan <peng.fan@nxp.com>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ drivers/soc/imx/gpcv2.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/soc/imx/gpcv2.c b/drivers/soc/imx/gpcv2.c
+index afc309aff0f0..0156064d2525 100644
+--- a/drivers/soc/imx/gpcv2.c
++++ b/drivers/soc/imx/gpcv2.c
+@@ -202,6 +202,7 @@ struct imx_pgc_domain {
+ 	} bits;
+ 
+ 	const int voltage;
++	const bool keep_clocks;
+ 	struct device *dev;
+ };
+ 
+@@ -298,7 +299,8 @@ static int imx_pgc_power_up(struct generic_pm_domain *genpd)
+ 	}
+ 
+ 	/* Disable reset clocks for all devices in the domain */
+-	clk_bulk_disable_unprepare(domain->num_clks, domain->clks);
++	if (!domain->keep_clocks)
++		clk_bulk_disable_unprepare(domain->num_clks, domain->clks);
+ 
+ 	return 0;
+ 
+@@ -320,10 +322,12 @@ static int imx_pgc_power_down(struct generic_pm_domain *genpd)
+ 	int ret;
+ 
+ 	/* Enable reset clocks for all devices in the domain */
+-	ret = clk_bulk_prepare_enable(domain->num_clks, domain->clks);
+-	if (ret) {
+-		dev_err(domain->dev, "failed to enable reset clocks\n");
+-		return ret;
++	if (!domain->keep_clocks) {
++		ret = clk_bulk_prepare_enable(domain->num_clks, domain->clks);
++		if (ret) {
++			dev_err(domain->dev, "failed to enable reset clocks\n");
++			return ret;
++		}
+ 	}
+ 
+ 	/* request the ADB400 to power down */
+-- 
+2.25.1
+

@@ -1,0 +1,43 @@
+From 99b0b96e818ae9dea15b473295b07860743fb067 Mon Sep 17 00:00:00 2001
+From: Richard Zhu <hongxing.zhu@nxp.com>
+Date: Thu, 2 Dec 2021 16:02:34 +0800
+Subject: [PATCH 17/26] v5.18 arm64: dts: imx8mm: Add the pcie phy support
+
+Add the PCIe PHY support on iMX8MM platforms.
+
+Signed-off-by: Richard Zhu <hongxing.zhu@nxp.com>
+Tested-by: Marcel Ziswiler <marcel.ziswiler@toradex.com>
+Reviewed-by: Tim Harvey <tharvey@gateworks.com>
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ arch/arm64/boot/dts/freescale/imx8mm.dtsi | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm.dtsi b/arch/arm64/boot/dts/freescale/imx8mm.dtsi
+index 5d75951c5aa0..f65f44c25298 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mm.dtsi
+@@ -1135,6 +1135,19 @@ usbmisc2: usbmisc@32e50200 {
+ 				reg = <0x32e50200 0x200>;
+ 			};
+ 
++			pcie_phy: pcie-phy@32f00000 {
++				compatible = "fsl,imx8mm-pcie-phy";
++				reg = <0x32f00000 0x10000>;
++				clocks = <&clk IMX8MM_CLK_PCIE1_PHY>;
++				clock-names = "ref";
++				assigned-clocks = <&clk IMX8MM_CLK_PCIE1_PHY>;
++				assigned-clock-rates = <100000000>;
++				assigned-clock-parents = <&clk IMX8MM_SYS_PLL2_100M>;
++				resets = <&src IMX8MQ_RESET_PCIEPHY>;
++				reset-names = "pciephy";
++				#phy-cells = <0>;
++				status = "disabled";
++			};
+ 		};
+ 
+ 		dma_apbh: dma-controller@33000000 {
+-- 
+2.25.1
+

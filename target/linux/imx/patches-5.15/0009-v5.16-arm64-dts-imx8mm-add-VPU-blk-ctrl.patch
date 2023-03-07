@@ -1,0 +1,41 @@
+From 95907fb6cf9070ff83fcb3a3903cf6da9986b4e9 Mon Sep 17 00:00:00 2001
+From: Lucas Stach <l.stach@pengutronix.de>
+Date: Sat, 2 Oct 2021 02:59:53 +0200
+Subject: [PATCH 09/26] v5.16 arm64: dts: imx8mm: add VPU blk-ctrl
+
+Add the DT node for the VPU blk-ctrl. With this in place the
+VPU power domains are fully functional.
+
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ arch/arm64/boot/dts/freescale/imx8mm.dtsi | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm.dtsi b/arch/arm64/boot/dts/freescale/imx8mm.dtsi
+index 4d21158017d8..5bd3409ae7fe 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mm.dtsi
+@@ -1170,6 +1170,19 @@ gpu_2d: gpu@38008000 {
+ 			power-domains = <&pgc_gpu>;
+ 		};
+ 
++		vpu_blk_ctrl: blk-ctrl@38330000 {
++			compatible = "fsl,imx8mm-vpu-blk-ctrl", "syscon";
++			reg = <0x38330000 0x100>;
++			power-domains = <&pgc_vpumix>, <&pgc_vpu_g1>,
++					<&pgc_vpu_g2>, <&pgc_vpu_h1>;
++			power-domain-names = "bus", "g1", "g2", "h1";
++			clocks = <&clk IMX8MM_CLK_VPU_G1_ROOT>,
++				 <&clk IMX8MM_CLK_VPU_G2_ROOT>,
++				 <&clk IMX8MM_CLK_VPU_H1_ROOT>;
++			clock-names = "g1", "g2", "h1";
++			#power-domain-cells = <1>;
++		};
++
+ 		gic: interrupt-controller@38800000 {
+ 			compatible = "arm,gic-v3";
+ 			reg = <0x38800000 0x10000>, /* GIC Dist */
+-- 
+2.25.1
+

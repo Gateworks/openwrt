@@ -1,0 +1,45 @@
+From a145cfa35a3cf25365617f8dc277e5dd6fe5ff13 Mon Sep 17 00:00:00 2001
+From: Marek Vasut <marex@denx.de>
+Date: Tue, 7 Sep 2021 04:38:30 +0200
+Subject: [PATCH 02/26] v5.16 soc: imx: gpcv2: Set both
+ GPC_PGC_nCTRL(GPU_2D|GPU_3D) for MX8MM GPU domain
+
+To bring up the MX8MM GPU domain, it is necessary to configure both
+GPC_PGC_nCTRL(GPU_2D) and GPC_PGC_nCTRL(GPU_3D) registers. Without
+this configuration, the system might hang on boot when bringing up
+the GPU power domain. This is sporadically observed on multiple
+disparate systems.
+
+Add the GPU3D bit into MX8MM GPU domain pgc bitfield, so that both
+GPC_PGC_nCTRL(GPU_2D) and GPC_PGC_nCTRL(GPU_3D) registers are
+configured when bringing up the GPU domain. This fixes the sporadic
+hang.
+
+Reviewed-by: Peng Fan <peng.fan@nxp.com>
+Signed-off-by: Marek Vasut <marex@denx.de>
+Cc: Frieder Schrempf <frieder.schrempf@kontron.de>
+Cc: Lucas Stach <l.stach@pengutronix.de>
+Cc: NXP Linux Team <linux-imx@nxp.com>
+Cc: Peng Fan <peng.fan@nxp.com>
+Cc: Shawn Guo <shawnguo@kernel.org>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ drivers/soc/imx/gpcv2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/soc/imx/gpcv2.c b/drivers/soc/imx/gpcv2.c
+index a9844c1bcf0d..443b2fdbfb76 100644
+--- a/drivers/soc/imx/gpcv2.c
++++ b/drivers/soc/imx/gpcv2.c
+@@ -682,7 +682,7 @@ static const struct imx_pgc_domain imx8mm_pgc_domains[] = {
+ 			.hskreq = IMX8MM_GPU_HSK_PWRDNREQN,
+ 			.hskack = IMX8MM_GPU_HSK_PWRDNACKN,
+ 		},
+-		.pgc   = BIT(IMX8MM_PGC_GPU2D),
++		.pgc   = BIT(IMX8MM_PGC_GPU2D) | BIT(IMX8MM_PGC_GPU3D),
+ 	},
+ 
+ 	[IMX8MM_POWER_DOMAIN_VPUMIX] = {
+-- 
+2.25.1
+

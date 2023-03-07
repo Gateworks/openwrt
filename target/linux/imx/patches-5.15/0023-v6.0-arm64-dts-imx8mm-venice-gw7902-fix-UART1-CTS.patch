@@ -1,0 +1,29 @@
+From a15256b4a921e2e74c40c49232d3e3e42e71fc45 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Mon, 13 Jun 2022 12:08:18 -0700
+Subject: [PATCH 23/26] v6.0 arm64: dts: imx8mm-venice-gw7902: fix UART1 CTS
+
+Configure the correct GPIO for UART1 CTS.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+index edf0c7aaaef0..a2540d73e4b5 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+@@ -643,7 +643,7 @@ &uart1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_uart1>, <&pinctrl_uart1_gpio>;
+ 	rts-gpios = <&gpio4 10 GPIO_ACTIVE_LOW>;
+-	cts-gpios = <&gpio4 11 GPIO_ACTIVE_LOW>;
++	cts-gpios = <&gpio4 24 GPIO_ACTIVE_LOW>;
+ 	status = "okay";
+ };
+ 
+-- 
+2.25.1
+

@@ -1,0 +1,72 @@
+From 0913288f557ba262714946eb29e4524de774df93 Mon Sep 17 00:00:00 2001
+From: Frieder Schrempf <frieder.schrempf@kontron.de>
+Date: Sat, 2 Oct 2021 02:59:52 +0200
+Subject: [PATCH 08/26] v5.16 arm64: dts: imx8mm: Add GPU nodes for 2D and 3D
+ core
+
+According to the documents, the i.MX8M-Mini features a GC320 and a
+GCNanoUltra GPU core. Etnaviv detects them as:
+
+	etnaviv-gpu 38000000.gpu: model: GC600, revision: 4653
+	etnaviv-gpu 38008000.gpu: model: GC520, revision: 5341
+
+This seems to work fine more or less without any changes to the HWDB,
+which still might be needed in the future to correct some features,
+etc.
+
+[lst]: Added power domains and switched clock assignments to the
+       new clock defines used for the composite clocks, instead of
+       relying on the backwards compat defines.
+
+Signed-off-by: Frieder Schrempf <frieder.schrempf@kontron.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ arch/arm64/boot/dts/freescale/imx8mm.dtsi | 31 +++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm.dtsi b/arch/arm64/boot/dts/freescale/imx8mm.dtsi
+index 6708b1bebf5c..4d21158017d8 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mm.dtsi
+@@ -1139,6 +1139,37 @@ gpmi: nand-controller@33002000 {
+ 			status = "disabled";
+ 		};
+ 
++		gpu_3d: gpu@38000000 {
++			compatible = "vivante,gc";
++			reg = <0x38000000 0x8000>;
++			interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&clk IMX8MM_CLK_GPU_AHB>,
++				 <&clk IMX8MM_CLK_GPU_BUS_ROOT>,
++				 <&clk IMX8MM_CLK_GPU3D_ROOT>,
++				 <&clk IMX8MM_CLK_GPU3D_ROOT>;
++			clock-names = "reg", "bus", "core", "shader";
++			assigned-clocks = <&clk IMX8MM_CLK_GPU3D_CORE>,
++					  <&clk IMX8MM_GPU_PLL_OUT>;
++			assigned-clock-parents = <&clk IMX8MM_GPU_PLL_OUT>;
++			assigned-clock-rates = <0>, <1000000000>;
++			power-domains = <&pgc_gpu>;
++		};
++
++		gpu_2d: gpu@38008000 {
++			compatible = "vivante,gc";
++			reg = <0x38008000 0x8000>;
++			interrupts = <GIC_SPI 25 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&clk IMX8MM_CLK_GPU_AHB>,
++				 <&clk IMX8MM_CLK_GPU_BUS_ROOT>,
++				 <&clk IMX8MM_CLK_GPU2D_ROOT>;
++			clock-names = "reg", "bus", "core";
++			assigned-clocks = <&clk IMX8MM_CLK_GPU2D_CORE>,
++					  <&clk IMX8MM_GPU_PLL_OUT>;
++			assigned-clock-parents = <&clk IMX8MM_GPU_PLL_OUT>;
++			assigned-clock-rates = <0>, <1000000000>;
++			power-domains = <&pgc_gpu>;
++		};
++
+ 		gic: interrupt-controller@38800000 {
+ 			compatible = "arm,gic-v3";
+ 			reg = <0x38800000 0x10000>, /* GIC Dist */
+-- 
+2.25.1
+

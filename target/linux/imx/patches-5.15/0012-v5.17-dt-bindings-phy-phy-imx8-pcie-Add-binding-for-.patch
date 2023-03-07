@@ -1,0 +1,43 @@
+From 136b65a84be32adc315d7f9114e7b173f45a4f30 Mon Sep 17 00:00:00 2001
+From: Richard Zhu <hongxing.zhu@nxp.com>
+Date: Thu, 2 Dec 2021 16:02:31 +0800
+Subject: [PATCH 12/26] v5.17 dt-bindings: phy: phy-imx8-pcie: Add binding for
+ the pad modes of imx8 pcie phy
+
+Add binding for reference clock PAD modes of the i.MX8 PCIe PHY.
+
+Signed-off-by: Richard Zhu <hongxing.zhu@nxp.com>
+Tested-by: Marcel Ziswiler <marcel.ziswiler@toradex.com>
+Reviewed-by: Tim Harvey <tharvey@gateworks.com>
+Tested-by: Tim Harvey <tharvey@gateworks.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Link: https://lore.kernel.org/r/1638432158-4119-2-git-send-email-hongxing.zhu@nxp.com
+Signed-off-by: Vinod Koul <vkoul@kernel.org>
+---
+ include/dt-bindings/phy/phy-imx8-pcie.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 include/dt-bindings/phy/phy-imx8-pcie.h
+
+diff --git a/include/dt-bindings/phy/phy-imx8-pcie.h b/include/dt-bindings/phy/phy-imx8-pcie.h
+new file mode 100644
+index 000000000000..8bbe2d6538d8
+--- /dev/null
++++ b/include/dt-bindings/phy/phy-imx8-pcie.h
+@@ -0,0 +1,14 @@
++/* SPDX-License-Identifier: (GPL-2.0+ OR MIT) */
++/*
++ * This header provides constants for i.MX8 PCIe.
++ */
++
++#ifndef _DT_BINDINGS_IMX8_PCIE_H
++#define _DT_BINDINGS_IMX8_PCIE_H
++
++/* Reference clock PAD mode */
++#define IMX8_PCIE_REFCLK_PAD_UNUSED	0
++#define IMX8_PCIE_REFCLK_PAD_INPUT	1
++#define IMX8_PCIE_REFCLK_PAD_OUTPUT	2
++
++#endif /* _DT_BINDINGS_IMX8_PCIE_H */
+-- 
+2.25.1
+

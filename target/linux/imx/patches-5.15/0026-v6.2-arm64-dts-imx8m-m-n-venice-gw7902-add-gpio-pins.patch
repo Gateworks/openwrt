@@ -1,0 +1,122 @@
+From b4826bba1124cfbda121ddb15a4803d7c0b9754b Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Mon, 7 Nov 2022 10:17:54 -0800
+Subject: [PATCH 26/26] v6.2 arm64: dts: imx8m{m,n}-venice-gw7902: add gpio
+ pins for new board revision
+
+Add gpio pins present on new board revision:
+ * LTE modem support (imx8mm-gw7902 only)
+  - lte_pwr#
+  - lte_rst
+  - lte_int
+ * M2 power enable
+  - m2_pwr_en
+ * off-board 4.0V supply
+  - vdd_4p0_en
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ .../boot/dts/freescale/imx8mm-venice-gw7902.dts      | 12 ++++++++----
+ .../boot/dts/freescale/imx8mn-venice-gw7902.dts      |  8 ++++----
+ 2 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+index a2540d73e4b5..f7df47aecb96 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+@@ -262,7 +262,7 @@ ethphy0: ethernet-phy@0 {
+ 
+ &gpio1 {
+ 	gpio-line-names = "", "", "", "", "", "", "", "",
+-		"", "", "", "", "", "m2_reset", "", "m2_wdis#",
++		"m2_pwr_en", "", "", "", "", "m2_reset", "", "m2_wdis#",
+ 		"", "", "", "", "", "", "", "",
+ 		"", "", "", "", "", "", "", "";
+ };
+@@ -284,7 +284,8 @@ &gpio3 {
+ &gpio4 {
+ 	gpio-line-names = "", "", "", "", "", "", "", "",
+ 		"", "", "", "amp_gpio3", "amp_gpio2", "", "amp_gpio1", "",
+-		"", "", "", "", "amp_gpio4", "app_gpio1", "", "uart1_rs485",
++		"lte_pwr#", "lte_rst", "lte_int", "",
++		"amp_gpio4", "app_gpio1", "vdd_4p0_en", "uart1_rs485",
+ 		"", "uart1_term", "uart1_half", "app_gpio2",
+ 		"mipi_gpio1", "", "", "";
+ };
+@@ -728,14 +729,19 @@ &iomuxc {
+ 	pinctrl_hog: hoggrp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x40000159 /* M2_GDIS# */
++			MX8MM_IOMUXC_GPIO1_IO08_GPIO1_IO8	0x40000041 /* M2_PWR_EN */
+ 			MX8MM_IOMUXC_GPIO1_IO13_GPIO1_IO13	0x40000041 /* M2_RESET */
+ 			MX8MM_IOMUXC_NAND_DATA01_GPIO3_IO7	0x40000119 /* M2_OFF# */
+ 			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15	0x40000159 /* M2_WDIS# */
++			MX8MM_IOMUXC_SAI1_TXD6_GPIO4_IO18       0x40000041 /* LTE_INT */
++			MX8MM_IOMUXC_SAI1_TXD5_GPIO4_IO17       0x40000041 /* LTE_RST# */
++			MX8MM_IOMUXC_SAI1_TXD4_GPIO4_IO16       0x40000041 /* LTE_PWR */
+ 			MX8MM_IOMUXC_SAI1_TXD2_GPIO4_IO14	0x40000041 /* AMP GPIO1 */
+ 			MX8MM_IOMUXC_SAI1_TXD0_GPIO4_IO12	0x40000041 /* AMP GPIO2 */
+ 			MX8MM_IOMUXC_SAI1_TXC_GPIO4_IO11	0x40000041 /* AMP GPIO3 */
+ 			MX8MM_IOMUXC_SAI1_MCLK_GPIO4_IO20	0x40000041 /* AMP_GPIO4 */
+ 			MX8MM_IOMUXC_SAI2_RXFS_GPIO4_IO21	0x40000041 /* APP GPIO1 */
++			MX8MM_IOMUXC_SAI2_RXC_GPIO4_IO22	0x40000041 /* VDD_4P0_EN */
+ 			MX8MM_IOMUXC_SAI2_MCLK_GPIO4_IO27	0x40000041 /* APP GPIO2 */
+ 			MX8MM_IOMUXC_SD1_DATA6_GPIO2_IO8	0x40000041 /* UART2_EN# */
+ 			MX8MM_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x40000041 /* MIPI_GPIO1 */
+@@ -769,8 +775,6 @@ MX8MM_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
+ 			MX8MM_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
+ 			MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10		0x19 /* RST# */
+ 			MX8MM_IOMUXC_GPIO1_IO11_GPIO1_IO11		0x19 /* IRQ# */
+-			MX8MM_IOMUXC_GPIO1_IO08_ENET1_1588_EVENT0_IN	0x141
+-			MX8MM_IOMUXC_GPIO1_IO09_ENET1_1588_EVENT0_OUT	0x141
+ 		>;
+ 	};
+ 
+diff --git a/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts b/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts
+index 689d6174df3d..f53cdb63e0bb 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts
+@@ -253,7 +253,7 @@ ethphy0: ethernet-phy@0 {
+ 
+ &gpio1 {
+ 	gpio-line-names = "", "", "", "", "", "", "", "",
+-		"", "", "", "", "", "m2_reset", "", "m2_wdis#",
++		"m2_pwr_en", "", "", "", "", "m2_reset", "", "m2_wdis#",
+ 		"", "", "", "", "", "", "", "",
+ 		"", "", "", "", "", "", "", "";
+ };
+@@ -275,7 +275,7 @@ &gpio3 {
+ &gpio4 {
+ 	gpio-line-names = "", "", "", "", "", "", "", "",
+ 		"", "", "", "", "", "", "", "",
+-		"", "", "", "", "", "app_gpio1", "", "uart1_rs485",
++		"", "", "", "", "", "app_gpio1", "vdd_4p0_en", "uart1_rs485",
+ 		"", "uart1_term", "uart1_half", "app_gpio2",
+ 		"mipi_gpio1", "", "", "";
+ };
+@@ -670,10 +670,12 @@ &iomuxc {
+ 	pinctrl_hog: hoggrp {
+ 		fsl,pins = <
+ 			MX8MN_IOMUXC_NAND_CE0_B_GPIO3_IO1	0x40000159 /* M2_GDIS# */
++			MX8MN_IOMUXC_GPIO1_IO08_GPIO1_IO8	0x40000041 /* M2_PWR_EN */
+ 			MX8MN_IOMUXC_GPIO1_IO13_GPIO1_IO13	0x40000041 /* M2_RESET */
+ 			MX8MN_IOMUXC_NAND_DATA01_GPIO3_IO7	0x40000119 /* M2_OFF# */
+ 			MX8MN_IOMUXC_GPIO1_IO15_GPIO1_IO15	0x40000159 /* M2_WDIS# */
+ 			MX8MN_IOMUXC_SAI2_RXFS_GPIO4_IO21	0x40000041 /* APP GPIO1 */
++			MX8MN_IOMUXC_SAI2_RXC_GPIO4_IO22	0x40000041 /* VDD_4P0_EN */
+ 			MX8MN_IOMUXC_SAI2_MCLK_GPIO4_IO27	0x40000041 /* APP GPIO2 */
+ 			MX8MN_IOMUXC_SD1_DATA6_GPIO2_IO8	0x40000041 /* UART2_EN# */
+ 			MX8MN_IOMUXC_SAI3_RXFS_GPIO4_IO28	0x40000041 /* MIPI_GPIO1 */
+@@ -707,8 +709,6 @@ MX8MN_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91
+ 			MX8MN_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f
+ 			MX8MN_IOMUXC_GPIO1_IO10_GPIO1_IO10		0x19 /* RST# */
+ 			MX8MN_IOMUXC_GPIO1_IO11_GPIO1_IO11		0x19 /* IRQ# */
+-			MX8MN_IOMUXC_GPIO1_IO08_ENET1_1588_EVENT0_IN	0x141
+-			MX8MN_IOMUXC_GPIO1_IO09_ENET1_1588_EVENT0_OUT	0x141
+ 		>;
+ 	};
+ 
+-- 
+2.25.1
+

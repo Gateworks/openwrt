@@ -1,0 +1,70 @@
+From e4d6ce669f03c522f249d6cb2044bfca45fd9dc4 Mon Sep 17 00:00:00 2001
+From: Lucas Stach <l.stach@pengutronix.de>
+Date: Sat, 2 Oct 2021 02:59:42 +0200
+Subject: [PATCH 05/26] v5.16 soc: imx: gpcv2: keep i.MX8M* bus clocks enabled
+
+Annotate the domains with bus clocks to keep those clocks enabled
+as long as the domain is active.
+
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Reviewed-by: Peng Fan <peng.fan@nxp.com>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ drivers/soc/imx/gpcv2.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/soc/imx/gpcv2.c b/drivers/soc/imx/gpcv2.c
+index 0156064d2525..1497d52182eb 100644
+--- a/drivers/soc/imx/gpcv2.c
++++ b/drivers/soc/imx/gpcv2.c
+@@ -530,6 +530,7 @@ static const struct imx_pgc_domain imx8m_pgc_domains[] = {
+ 			.hskack = IMX8M_VPU_HSK_PWRDNACKN,
+ 		},
+ 		.pgc   = BIT(IMX8M_PGC_VPU),
++		.keep_clocks = true,
+ 	},
+ 
+ 	[IMX8M_POWER_DOMAIN_DISP] = {
+@@ -628,6 +629,7 @@ static const struct imx_pgc_domain imx8mm_pgc_domains[] = {
+ 			.hskreq = IMX8MM_HSIO_HSK_PWRDNREQN,
+ 			.hskack = IMX8MM_HSIO_HSK_PWRDNACKN,
+ 		},
++		.keep_clocks = true,
+ 	},
+ 
+ 	[IMX8MM_POWER_DOMAIN_PCIE] = {
+@@ -674,6 +676,7 @@ static const struct imx_pgc_domain imx8mm_pgc_domains[] = {
+ 			.hskack = IMX8MM_GPUMIX_HSK_PWRDNACKN,
+ 		},
+ 		.pgc   = BIT(IMX8MM_PGC_GPUMIX),
++		.keep_clocks = true,
+ 	},
+ 
+ 	[IMX8MM_POWER_DOMAIN_GPU] = {
+@@ -700,6 +703,7 @@ static const struct imx_pgc_domain imx8mm_pgc_domains[] = {
+ 			.hskack = IMX8MM_VPUMIX_HSK_PWRDNACKN,
+ 		},
+ 		.pgc   = BIT(IMX8MM_PGC_VPUMIX),
++		.keep_clocks = true,
+ 	},
+ 
+ 	[IMX8MM_POWER_DOMAIN_VPUG1] = {
+@@ -746,6 +750,7 @@ static const struct imx_pgc_domain imx8mm_pgc_domains[] = {
+ 			.hskack = IMX8MM_DISPMIX_HSK_PWRDNACKN,
+ 		},
+ 		.pgc   = BIT(IMX8MM_PGC_DISPMIX),
++		.keep_clocks = true,
+ 	},
+ 
+ 	[IMX8MM_POWER_DOMAIN_MIPI] = {
+@@ -813,6 +818,7 @@ static const struct imx_pgc_domain imx8mn_pgc_domains[] = {
+ 			.hskreq = IMX8MN_HSIO_HSK_PWRDNREQN,
+ 			.hskack = IMX8MN_HSIO_HSK_PWRDNACKN,
+ 		},
++		.keep_clocks = true,
+ 	},
+ 
+ 	[IMX8MN_POWER_DOMAIN_OTG1] = {
+-- 
+2.25.1
+

@@ -1,0 +1,75 @@
+From d121f8cb7cf684638caad06167b944073c1dd804 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Wed, 6 Oct 2021 08:38:36 -0700
+Subject: [PATCH 11/26] v5.16 arm64: dts: imx8mm-venice-gw7901.dts: disable
+ pgc_gpumix
+
+Since commit b21269b12e48 ("arm64: dts: imx8mm: add GPC node") the
+GW7901 will hang during kernel init because it does not power the unused
+GPU voltage rails on the IMX8MM. Disable pgc_gpumix to work around this.
+
+We also disable the GPU devices that depend on the gpumix power domain
+and pgc_gpu to avoid them staying in a probe deferred state forever.
+
+Additionally as the MIPI voltage rail is also not connected on this
+board we disable pgc_mipi and disp_blk_ctrl.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+Reviewed-by: Lucas Stach <l.stach@pengutronix.de>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ .../dts/freescale/imx8mm-venice-gw7901.dts    | 24 +++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+index f7e41e5c2c7b..53578e56ccea 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+@@ -255,6 +255,10 @@ opp-750M {
+ 	};
+ };
+ 
++&disp_blk_ctrl {
++	status = "disabled";
++};
++
+ &ecspi1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_spi1>;
+@@ -282,6 +286,14 @@ fixed-link {
+ 	};
+ };
+ 
++&gpu_2d {
++	status = "disabled";
++};
++
++&gpu_3d {
++	status = "disabled";
++};
++
+ &i2c1 {
+ 	clock-frequency = <100000>;
+ 	pinctrl-names = "default";
+@@ -632,6 +644,18 @@ &i2c4 {
+ 	status = "okay";
+ };
+ 
++&pgc_gpu {
++	status = "disabled";
++};
++
++&pgc_gpumix {
++	status = "disabled";
++};
++
++&pgc_mipi {
++	status = "disabled";
++};
++
+ &uart1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_uart1>, <&pinctrl_uart1_gpio>;
+-- 
+2.25.1
+

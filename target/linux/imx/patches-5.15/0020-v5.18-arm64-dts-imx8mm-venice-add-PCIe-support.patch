@@ -1,0 +1,438 @@
+From ad1f37bc1827ba4eb813de63db275b349a71b96c Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 16 Dec 2021 08:41:49 -0800
+Subject: [PATCH 20/26] v5.18 arm64: dts: imx8mm-venice*: add PCIe support
+
+Add PCIe support to GW71xx/GW72xx/GW73xx/GW7901/GW7902
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ .../dts/freescale/imx8mm-venice-gw71xx.dtsi   | 35 +++++++++++
+ .../dts/freescale/imx8mm-venice-gw72xx.dtsi   | 62 +++++++++++++++++++
+ .../dts/freescale/imx8mm-venice-gw73xx.dtsi   | 62 +++++++++++++++++++
+ .../dts/freescale/imx8mm-venice-gw7901.dts    | 36 +++++++++++
+ .../dts/freescale/imx8mm-venice-gw7902.dts    | 50 +++++++++++++++
+ 5 files changed, 245 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw71xx.dtsi b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw71xx.dtsi
+index 7ea909a4c1d5..c2315d3ef4d0 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw71xx.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw71xx.dtsi
+@@ -5,6 +5,7 @@
+ 
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/leds/common.h>
++#include <dt-bindings/phy/phy-imx8-pcie.h>
+ 
+ / {
+ 	aliases {
+@@ -33,6 +34,12 @@ led-1 {
+ 		};
+ 	};
+ 
++	pcie0_refclk: pcie0-refclk {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <100000000>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+@@ -87,6 +94,28 @@ &i2c3 {
+ 	status = "okay";
+ };
+ 
++&pcie_phy {
++	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
++	fsl,clkreq-unsupported;
++	clocks = <&pcie0_refclk>;
++	status = "okay";
++};
++
++&pcie0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_pcie0>;
++	reset-gpio = <&gpio4 6 GPIO_ACTIVE_LOW>;
++	clocks = <&clk IMX8MM_CLK_PCIE1_ROOT>, <&clk IMX8MM_CLK_PCIE1_AUX>,
++		 <&pcie0_refclk>;
++	clock-names = "pcie", "pcie_aux", "pcie_bus";
++	assigned-clocks = <&clk IMX8MM_CLK_PCIE1_AUX>,
++			  <&clk IMX8MM_CLK_PCIE1_CTRL>;
++	assigned-clock-rates = <10000000>, <250000000>;
++	assigned-clock-parents = <&clk IMX8MM_SYS_PLL2_50M>,
++				 <&clk IMX8MM_SYS_PLL2_250M>;
++	status = "okay";
++};
++
+ /* GPS */
+ &uart1 {
+ 	pinctrl-names = "default";
+@@ -150,6 +179,12 @@ MX8MM_IOMUXC_I2C3_SDA_I2C3_SDA		0x400001c3
+ 		>;
+ 	};
+ 
++	pinctrl_pcie0: pcie0grp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SAI1_RXD4_GPIO4_IO6	0x41
++		>;
++	};
++
+ 	pinctrl_pps: ppsgrp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15	0x41
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw72xx.dtsi b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw72xx.dtsi
+index 806ee21651d1..84638edbd155 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw72xx.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw72xx.dtsi
+@@ -5,9 +5,11 @@
+ 
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/leds/common.h>
++#include <dt-bindings/phy/phy-imx8-pcie.h>
+ 
+ / {
+ 	aliases {
++		ethernet1 = &eth1;
+ 		usb0 = &usbotg1;
+ 		usb1 = &usbotg2;
+ 	};
+@@ -33,6 +35,12 @@ led-1 {
+ 		};
+ 	};
+ 
++	pcie0_refclk: pcie0-refclk {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <100000000>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+@@ -106,6 +114,54 @@ &i2c3 {
+ 	status = "okay";
+ };
+ 
++&pcie_phy {
++	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
++	fsl,clkreq-unsupported;
++	clocks = <&pcie0_refclk>;
++	status = "okay";
++};
++
++&pcie0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_pcie0>;
++	reset-gpio = <&gpio4 6 GPIO_ACTIVE_LOW>;
++	clocks = <&clk IMX8MM_CLK_PCIE1_ROOT>, <&clk IMX8MM_CLK_PCIE1_AUX>,
++		 <&pcie0_refclk>;
++	clock-names = "pcie", "pcie_aux", "pcie_bus";
++	assigned-clocks = <&clk IMX8MM_CLK_PCIE1_AUX>,
++			  <&clk IMX8MM_CLK_PCIE1_CTRL>;
++	assigned-clock-rates = <10000000>, <250000000>;
++	assigned-clock-parents = <&clk IMX8MM_SYS_PLL2_50M>,
++				 <&clk IMX8MM_SYS_PLL2_250M>;
++	status = "okay";
++
++	pcie@0,0 {
++		reg = <0x0000 0 0 0 0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		pcie@1,0 {
++			reg = <0x0000 0 0 0 0>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			pcie@2,3 {
++				reg = <0x1800 0 0 0 0>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				eth1: pcie@5,0 {
++					reg = <0x0000 0 0 0 0>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++
++					local-mac-address = [00 00 00 00 00 00];
++				};
++			};
++		};
++	};
++};
++
+ /* off-board header */
+ &sai3 {
+ 	pinctrl-names = "default";
+@@ -200,6 +256,12 @@ MX8MM_IOMUXC_I2C3_SDA_I2C3_SDA		0x400001c3
+ 		>;
+ 	};
+ 
++	pinctrl_pcie0: pcie0grp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SAI1_RXD4_GPIO4_IO6	0x41
++		>;
++	};
++
+ 	pinctrl_pps: ppsgrp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15	0x41
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw73xx.dtsi b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw73xx.dtsi
+index 942fed2eed64..457ba82523b6 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw73xx.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw73xx.dtsi
+@@ -5,9 +5,11 @@
+ 
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/leds/common.h>
++#include <dt-bindings/phy/phy-imx8-pcie.h>
+ 
+ / {
+ 	aliases {
++		ethernet1 = &eth1;
+ 		usb0 = &usbotg1;
+ 		usb1 = &usbotg2;
+ 	};
+@@ -33,6 +35,12 @@ led-1 {
+ 		};
+ 	};
+ 
++	pcie0_refclk: pcie0-refclk {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <100000000>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+@@ -126,6 +134,54 @@ &i2c3 {
+ 	status = "okay";
+ };
+ 
++&pcie_phy {
++	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
++	fsl,clkreq-unsupported;
++	clocks = <&pcie0_refclk>;
++	status = "okay";
++};
++
++&pcie0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_pcie0>;
++	reset-gpio = <&gpio4 6 GPIO_ACTIVE_LOW>;
++	clocks = <&clk IMX8MM_CLK_PCIE1_ROOT>, <&clk IMX8MM_CLK_PCIE1_AUX>,
++		 <&pcie0_refclk>;
++	clock-names = "pcie", "pcie_aux", "pcie_bus";
++	assigned-clocks = <&clk IMX8MM_CLK_PCIE1_AUX>,
++			  <&clk IMX8MM_CLK_PCIE1_CTRL>;
++	assigned-clock-rates = <10000000>, <250000000>;
++	assigned-clock-parents = <&clk IMX8MM_SYS_PLL2_50M>,
++				 <&clk IMX8MM_SYS_PLL2_250M>;
++	status = "okay";
++
++	pcie@0,0 {
++		reg = <0x0000 0 0 0 0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		pcie@1,0 {
++			reg = <0x0000 0 0 0 0>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			pcie@2,4 {
++				reg = <0x2000 0 0 0 0>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				eth1: pcie@6,0 {
++					reg = <0x0000 0 0 0 0>;
++					#address-cells = <1>;
++					#size-cells = <0>;
++
++					local-mac-address = [00 00 00 00 00 00];
++				};
++			};
++		};
++	};
++};
++
+ /* off-board header */
+ &sai3 {
+ 	pinctrl-names = "default";
+@@ -243,6 +299,12 @@ MX8MM_IOMUXC_I2C3_SDA_I2C3_SDA		0x400001c3
+ 		>;
+ 	};
+ 
++	pinctrl_pcie0: pcie0grp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SAI1_RXD4_GPIO4_IO6	0x41
++		>;
++	};
++
+ 	pinctrl_pps: ppsgrp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_GPIO1_IO15_GPIO1_IO15	0x41
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+index 53578e56ccea..1d0b1ce2e324 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+@@ -8,6 +8,7 @@
+ #include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/input/linux-event-codes.h>
+ #include <dt-bindings/leds/common.h>
++#include <dt-bindings/phy/phy-imx8-pcie.h>
+ 
+ #include "imx8mm.dtsi"
+ 
+@@ -179,6 +180,12 @@ led-b {
+ 		};
+ 	};
+ 
++	pcie0_refclk: pcie0-refclk {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <100000000>;
++	};
++
+ 	reg_3p3v: regulator-3p3v {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "3P3V";
+@@ -644,6 +651,28 @@ &i2c4 {
+ 	status = "okay";
+ };
+ 
++&pcie_phy {
++	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
++	fsl,clkreq-unsupported;
++	clocks = <&pcie0_refclk>;
++	status = "okay";
++};
++
++&pcie0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_pcie0>;
++	reset-gpio = <&gpio5 2 GPIO_ACTIVE_LOW>;
++	clocks = <&clk IMX8MM_CLK_PCIE1_ROOT>, <&clk IMX8MM_CLK_PCIE1_AUX>,
++		 <&pcie0_refclk>;
++	clock-names = "pcie", "pcie_aux", "pcie_bus";
++	assigned-clocks = <&clk IMX8MM_CLK_PCIE1_AUX>,
++			  <&clk IMX8MM_CLK_PCIE1_CTRL>;
++	assigned-clock-rates = <10000000>, <250000000>;
++	assigned-clock-parents = <&clk IMX8MM_SYS_PLL2_50M>,
++				 <&clk IMX8MM_SYS_PLL2_250M>;
++	status = "okay";
++};
++
+ &pgc_gpu {
+ 	status = "disabled";
+ };
+@@ -821,6 +850,13 @@ MX8MM_IOMUXC_SAI1_TXD7_GPIO4_IO19	0x41 /* RST# */
+ 		>;
+ 	};
+ 
++	pinctrl_pcie0: pciegrp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SAI3_TXFS_GPIO4_IO31	0x40000041 /* WDIS# */
++			MX8MM_IOMUXC_SAI3_MCLK_GPIO5_IO2	0x41
++		>;
++	};
++
+ 	pinctrl_pmic: pmicgrp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_SAI5_RXC_GPIO3_IO20	0x41
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+index d52686f4c059..1b2aaf299b24 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+@@ -9,6 +9,7 @@
+ #include <dt-bindings/input/linux-event-codes.h>
+ #include <dt-bindings/leds/common.h>
+ #include <dt-bindings/net/ti-dp83867.h>
++#include <dt-bindings/phy/phy-imx8-pcie.h>
+ 
+ #include "imx8mm.dtsi"
+ 
+@@ -17,6 +18,7 @@ / {
+ 	compatible = "gw,imx8mm-gw7902", "fsl,imx8mm";
+ 
+ 	aliases {
++		ethernet1 = &eth1;
+ 		usb0 = &usbotg1;
+ 		usb1 = &usbotg2;
+ 	};
+@@ -128,6 +130,12 @@ led-4 {
+ 		};
+ 	};
+ 
++	pcie0_refclk: pcie0-refclk {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <100000000>;
++	};
++
+ 	pps {
+ 		compatible = "pps-gpio";
+ 		pinctrl-names = "default";
+@@ -547,6 +555,42 @@ &i2c4 {
+ 	status = "okay";
+ };
+ 
++&pcie_phy {
++	fsl,refclk-pad-mode = <IMX8_PCIE_REFCLK_PAD_INPUT>;
++	fsl,clkreq-unsupported;
++	clocks = <&clk IMX8MM_CLK_DUMMY>;
++	status = "okay";
++};
++
++&pcie0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_pcie0>;
++	reset-gpio = <&gpio4 5 GPIO_ACTIVE_LOW>;
++	clocks = <&clk IMX8MM_CLK_PCIE1_ROOT>, <&clk IMX8MM_CLK_PCIE1_AUX>,
++		 <&clk IMX8MM_CLK_DUMMY>, <&pcie0_refclk>;
++	clock-names = "pcie", "pcie_aux", "pcie_phy", "pcie_bus";
++	assigned-clocks = <&clk IMX8MM_CLK_PCIE1_AUX>,
++			  <&clk IMX8MM_CLK_PCIE1_CTRL>;
++	assigned-clock-rates = <10000000>, <250000000>;
++	assigned-clock-parents = <&clk IMX8MM_SYS_PLL2_50M>,
++				 <&clk IMX8MM_SYS_PLL2_250M>;
++	status = "okay";
++
++	pcie@0,0 {
++		reg = <0x0000 0 0 0 0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		eth1: pcie@1,0 {
++			reg = <0x0000 0 0 0 0>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			local-mac-address = [00 00 00 00 00 00];
++		};
++	};
++};
++
+ /* off-board header */
+ &sai3 {
+ 	pinctrl-names = "default";
+@@ -737,6 +781,12 @@ MX8MM_IOMUXC_SAI5_MCLK_GPIO3_IO25	0x19
+ 		>;
+ 	};
+ 
++	pinctrl_pcie0: pciegrp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SAI1_RXD3_GPIO4_IO5	0x41
++		>;
++	};
++
+ 	pinctrl_pmic: pmicgrp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_NAND_DATA02_GPIO3_IO8	0x41
+-- 
+2.25.1
+
