@@ -1,0 +1,20 @@
+. /lib/functions/uci-defaults.sh
+
+board=$(board_name)
+
+board_config_update
+
+case "$board" in
+gw,imx8mm-gw73xx-0x|\
+gw,imx8mm-gw72xx-0x|\
+gw,imx8mm-gw7902-0x)
+	ucidef_set_interfaces_lan_wan 'eth1' 'eth0'
+	;;
+gw,imx8mm-gw7901)
+	ucidef_set_interfaces_lan_wan 'lan2 lan3 lan4' 'lan1'
+	;;
+esac
+
+board_config_flush
+
+exit 0
