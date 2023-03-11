@@ -1,0 +1,37 @@
+# distro-config bootscript
+#  - use only well-known variable names provided by U-Boot Distro boot
+#    - devtype - device type script run from (mmc|usb|scsi)
+#    - distro_bootpart - partition script run from (0 based int)
+#    - prefix - directory boot script was found in
+#    - kernel_addr_r - address to load kernel image to
+#    - fdt_addr_r - address to load dtb to
+#    - ftdcontroladdr - address dtb is at
+echo "Newport OpenWrt Boot Script v1.00"
+
+#  use root=PARTUUID
+#   - this avoids any difference beteween uboot's device names/numbers
+#   - P1 is reserved for boot firmware files
+#   - P2 is a 'boot' partition containing bootscript and kernel
+#   - P3 is the 'rootfs' partition thus we need to add 1 to the current partitiont
+#     to reference it
+setexpr rootpart ${distro_bootpart} + 1 # root on 'next' partition
+part uuid ${devtype} ${devnum}:${rootpart} uuid
+setenv bootargs ${bootargs} root=PARTUUID=${uuid} rootfstype=squashfs,ext4,f2fs rootwait
+
+if test -n "$fdt_overlays"; then echo "Applying overlays"; run apply_overlays; fi
+if test -n "$fixfdt"; then echo "Adjusting FDT"; run fixfdt; fi
+
+# disable USB autosuspend (CN81xx errata)
+setenv bootargs ${bootargs} usbcore.autosuspend=-1
+# disable KPTI (expected chip errata)
+setenv bootargs ${bootargs} kpti=0
+# add console= option to bootargs, if any
+if test -n "${console}"; then
+        setenv bootargs ${bootargs} console=${console}
+fi
+echo "bootargs:${bootargs}"
+
+# load and boot kernel
+echo "Loading kernel from ${devtype} ${devnum}:${distro_bootpart} ${prefix}"
+load ${devtype} ${devnum}:${distro_bootpart} ${kernel_addr_r} ${prefix}Image &&
+booti ${kernel_addr_r} - ${fdtcontroladdr}
