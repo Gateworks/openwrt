@@ -93,7 +93,7 @@ get_image() { # <source> [ <command> ]
 		esac
 	fi
 
-	$cmd <"$from"
+	$cmd 2>/dev/null <"$from"
 }
 
 get_image_dd() {
