@@ -1,0 +1,30 @@
+From 7356c07de61180d8e1ba64b33b37bfc2b662f227 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Tue, 12 Apr 2022 08:54:40 -0700
+Subject: [PATCH] v5.19 Bluetooth: btbcm: Add entry for BCM4373A0 UART
+ Bluetooth
+
+This patch adds the device ID for the BCM4373A0 module, found e.g. in
+the Infineon (Cypress) CYW4373E chip. The required firmware file is
+named 'BCM4373A0.hcd'.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/bluetooth/btbcm.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/bluetooth/btbcm.c b/drivers/bluetooth/btbcm.c
+index a18f289d7346..7ad368e8c721 100644
+--- a/drivers/bluetooth/btbcm.c
++++ b/drivers/bluetooth/btbcm.c
+@@ -459,6 +459,7 @@ static const struct bcm_subver_table bcm_uart_subver_table[] = {
+ 	{ 0x6106, "BCM4359C0"	},	/* 003.001.006 */
+ 	{ 0x4106, "BCM4335A0"	},	/* 002.001.006 */
+ 	{ 0x410c, "BCM43430B0"	},	/* 002.001.012 */
++	{ 0x2119, "BCM4373A0"	},	/* 001.001.025 */
+ 	{ }
+ };
+ 
+-- 
+2.25.1
+
