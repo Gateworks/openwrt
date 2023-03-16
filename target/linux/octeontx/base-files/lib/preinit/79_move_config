@@ -10,9 +10,18 @@ move_config() {
 	gw,gw630x|\
 	gw,gw640x|\
 	gw,gw6903)
+		export_bootdevice && export_partdevice partdev 1 && {
+			mount -t vfat -o rw,noatime "/dev/$partdev" /mnt
+			[ -f "/mnt/$BACKUP_FILE" ] && {
+				echo "found $BACKUP_FILE in /dev/$partdev" >> /dev/console
+				mv -f "/mnt/$BACKUP_FILE" /
+			}
+			umount /mnt
+		}
 		export_bootdevice && export_partdevice partdev 2 && {
 			mount -o rw,noatime "/dev/$partdev" /mnt
 			[ -f "/mnt/$BACKUP_FILE" ] && {
+				echo "found $BACKUP_FILE in /dev/$partdev" >> /dev/console
 				mv -f "/mnt/$BACKUP_FILE" /
 			}
 			umount /mnt
