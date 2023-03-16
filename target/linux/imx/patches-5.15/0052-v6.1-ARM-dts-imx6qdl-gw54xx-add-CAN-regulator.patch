@@ -1,0 +1,66 @@
+From 0b6624e0ef8cbbabc0dc02c0fd7b2ad72712cc4f Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Mon, 12 Sep 2022 14:37:40 -0700
+Subject: [PATCH 3/3] ARM: dts: imx6qdl-gw54xx: add CAN regulator
+
+The GW54xx has a tranceiver with a STBY pin connected to an IMX6 GPIO.
+Configure this as a regulator to drive it low when CAN is in use.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+index 3437ad100b85..33b94f59138d 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -149,6 +149,16 @@ reg_3p3v: regulator@1 {
+ 			regulator-always-on;
+ 		};
+ 
++		reg_can1_stby: regulator-can1-stby {
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_reg_can1>;
++			compatible = "regulator-fixed";
++			regulator-name = "can1_stby";
++			gpio = <&gpio1 2 GPIO_ACTIVE_LOW>;
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++		};
++
+ 		reg_usb_h1_vbus: regulator@2 {
+ 			compatible = "regulator-fixed";
+ 			reg = <2>;
+@@ -212,6 +222,7 @@ IMX_AUDMUX_V2_PTCR_SYN
+ &can1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_flexcan1>;
++	xceiver-supply = <&reg_can1_stby>;
+ 	status = "okay";
+ };
+ 
+@@ -744,7 +755,6 @@ pinctrl_flexcan1: flexcan1grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_KEY_ROW2__FLEXCAN1_RX	0x1b0b1
+ 			MX6QDL_PAD_KEY_COL2__FLEXCAN1_TX	0x1b0b1
+-			MX6QDL_PAD_GPIO_2__GPIO1_IO02		0x4001b0b0 /* CAN_STBY */
+ 		>;
+ 	};
+ 
+@@ -849,6 +859,12 @@ MX6QDL_PAD_GPIO_17__GPIO7_IO12		0x1b0b0
+ 		>;
+ 	};
+ 
++	pinctrl_reg_can1: regcan1grp {
++		fsl,pins = <
++			MX6QDL_PAD_GPIO_2__GPIO1_IO02		0x4001b0b0 /* CAN_STBY */
++		>;
++	};
++
+ 	pinctrl_uart1: uart1grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_SD3_DAT7__UART1_TX_DATA	0x1b0b1
+-- 
+2.25.1
+
