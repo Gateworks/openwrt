@@ -28,7 +28,7 @@ endef
 
 define Build/sdcard-img-ext4
 	SIGNATURE="$(IMG_PART_SIGNATURE)" \
-	PARTOFFSET="$(PARTITION_OFFSET)" \
+	PARTOFFSET="$(PARTITION_OFFSET)" PADDING=1 \
 		$(if $(filter $(1),efi),GUID="$(IMG_PART_DISKGUID)") $(SCRIPT_DIR)/gen_image_generic.sh \
 		$@ \
 		$(CONFIG_TARGET_KERNEL_PARTSIZE) $@.boot \
