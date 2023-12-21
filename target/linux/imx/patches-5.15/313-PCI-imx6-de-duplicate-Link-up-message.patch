@@ -1,0 +1,45 @@
+From 13663a09dface74817d17f1a96135d9b85a0f23d Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 21 Dec 2023 11:08:05 -0800
+Subject: [PATCH 2/2] PCI: imx6: de-duplicate Link up message
+
+remove the link up message from dw_pcie_wait_for_link as it is already
+shown with more detail in imx6_pcie_start_link
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/pci/controller/dwc/pcie-designware.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/pci/controller/dwc/pcie-designware.c b/drivers/pci/controller/dwc/pcie-designware.c
+index 00972a7bc976..237c2f5df00a 100644
+--- a/drivers/pci/controller/dwc/pcie-designware.c
++++ b/drivers/pci/controller/dwc/pcie-designware.c
+@@ -528,16 +528,18 @@ int dw_pcie_wait_for_link(struct dw_pcie *pci)
+ 
+ 	/* Check if the link is up or not */
+ 	for (retries = 0; retries < LINK_WAIT_MAX_RETRIES; retries++) {
+-		if (dw_pcie_link_up(pci)) {
+-			dev_info(pci->dev, "Link up\n");
+-			return 0;
+-		}
++		if (dw_pcie_link_up(pci))
++			break;
++
+ 		usleep_range(LINK_WAIT_USLEEP_MIN, LINK_WAIT_USLEEP_MAX);
+ 	}
+ 
+-	dev_info(pci->dev, "Phy link never came up\n");
++	if (retries >= LINK_WAIT_MAX_RETRIES) {
++		dev_info(pci->dev, "Phy link never came up\n");
++		return -ETIMEDOUT;
++	}
+ 
+-	return -ETIMEDOUT;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(dw_pcie_wait_for_link);
+ 
+-- 
+2.25.1
+
