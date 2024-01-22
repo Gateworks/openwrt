@@ -15,6 +15,9 @@ gw,imx8mm-gw7902-0x)
 gw,imx8mm-gw7901)
 	ucidef_set_interfaces_lan_wan 'lan2 lan3 lan4' 'lan1'
 	;;
+gateworks,imx8mp-gw74xx)
+	ucidef_set_interfaces_lan_wan 'lan1 lan2 lan3 lan4' 'eth1'
+	;;
 esac
 
 board_config_flush
