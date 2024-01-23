@@ -1,0 +1,110 @@
+From 7f8010e78fafe2bca8adf2361f0d202d8ec9a1a6 Mon Sep 17 00:00:00 2001
+From: Nicolas Cavallari <nicolas.cavallari@green-communications.fr>
+Date: Mon, 5 Jun 2023 11:04:42 +0200
+Subject: [PATCH 13/24] 6.5: arm64: dts: imx8mm-venice: Fix GSC vdd_bat data
+ size.
+
+On these boards, vdd_bat is 16bit, not 24bit.  Reading them as 24bit
+values yield garbage values because of the additional byte, which is a
+configurable fan trippoint[1].
+
+So set their mode to mode_voltage_16bit = 3 instead of
+mode_voltage_24bit = 1.
+
+[1]: http://trac.gateworks.com/wiki/gsc#SystemTemperatureandVoltageMonitor
+
+Only tested on GW7100.
+
+Signed-off-by: Nicolas Cavallari <nicolas.cavallari@green-communications.fr>
+Acked-by: Tim Harvey <tharvey@gateworks.com>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ arch/arm64/boot/dts/freescale/imx8mm-venice-gw700x.dtsi | 2 +-
+ arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts  | 2 +-
+ arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts  | 2 +-
+ arch/arm64/boot/dts/freescale/imx8mm-venice-gw7903.dts  | 2 +-
+ arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts  | 2 +-
+ arch/arm64/boot/dts/freescale/imx8mp-venice-gw74xx.dts  | 2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw700x.dtsi b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw700x.dtsi
+index c305e325d007..63debc2d4fc6 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw700x.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw700x.dtsi
+@@ -149,7 +149,7 @@ channel@6 {
+ 			};
+ 
+ 			channel@8 {
+-				gw,mode = <1>;
++				gw,mode = <3>;
+ 				reg = <0x08>;
+ 				label = "vdd_bat";
+ 			};
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+index 2b54c90195b6..3a910f6de364 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+@@ -354,7 +354,7 @@ channel@6 {
+ 			};
+ 
+ 			channel@8 {
+-				gw,mode = <1>;
++				gw,mode = <3>;
+ 				reg = <0x08>;
+ 				label = "vdd_bat";
+ 			};
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+index 078c80c8599f..36fcc617fad9 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+@@ -327,7 +327,7 @@ channel@6 {
+ 			};
+ 
+ 			channel@8 {
+-				gw,mode = <1>;
++				gw,mode = <3>;
+ 				reg = <0x08>;
+ 				label = "vdd_bat";
+ 			};
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7903.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7903.dts
+index 8eb469f5e16d..a0185cb763cd 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7903.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7903.dts
+@@ -293,7 +293,7 @@ channel@6 {
+ 			};
+ 
+ 			channel@8 {
+-				gw,mode = <1>;
++				gw,mode = <3>;
+ 				reg = <0x08>;
+ 				label = "vdd_bat";
+ 			};
+diff --git a/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts b/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts
+index ac72cf114fa1..e1d22bc82e67 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts
+@@ -325,7 +325,7 @@ channel@6 {
+ 			};
+ 
+ 			channel@8 {
+-				gw,mode = <1>;
++				gw,mode = <3>;
+ 				reg = <0x08>;
+ 				label = "vdd_bat";
+ 			};
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-venice-gw74xx.dts b/arch/arm64/boot/dts/freescale/imx8mp-venice-gw74xx.dts
+index 8eb7d5ee38da..5308924a6ada 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-venice-gw74xx.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mp-venice-gw74xx.dts
+@@ -281,7 +281,7 @@ channel@6 {
+ 			};
+ 
+ 			channel@8 {
+-				gw,mode = <1>;
++				gw,mode = <3>;
+ 				reg = <0x08>;
+ 				label = "vdd_bat";
+ 			};
+-- 
+2.25.1
+

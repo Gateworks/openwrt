@@ -1,0 +1,44 @@
+From c92ca904ecc66050fa72fec1e7d10b7d29acf6c6 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Mon, 26 Jun 2023 11:51:13 -0700
+Subject: [PATCH 23/24] 6.7: arm64: dts: imx8mm-venice-gw73xx: add TPM device
+
+Add the TPM device found on the GW73xx revision F PCB.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ .../arm64/boot/dts/freescale/imx8mm-venice-gw73xx.dtsi | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw73xx.dtsi b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw73xx.dtsi
+index 7761d5671cb1..11ad4bec297c 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw73xx.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw73xx.dtsi
+@@ -104,8 +104,15 @@ reg_wifi_en: regulator-wifi-en {
+ &ecspi2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_spi2>;
+-	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
++	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>,
++		   <&gpio1 10 GPIO_ACTIVE_LOW>;
+ 	status = "okay";
++
++	tpm@1 {
++		compatible = "tcg,tpm_tis-spi";
++		reg = <0x1>;
++		spi-max-frequency = <36000000>;
++	};
+ };
+ 
+ &gpio1 {
+@@ -363,6 +370,7 @@ MX8MM_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK	0xd6
+ 			MX8MM_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI	0xd6
+ 			MX8MM_IOMUXC_ECSPI2_MISO_ECSPI2_MISO	0xd6
+ 			MX8MM_IOMUXC_ECSPI2_SS0_GPIO5_IO13	0xd6
++			MX8MM_IOMUXC_GPIO1_IO10_GPIO1_IO10	0xd6
+ 		>;
+ 	};
+ 
+-- 
+2.25.1
+

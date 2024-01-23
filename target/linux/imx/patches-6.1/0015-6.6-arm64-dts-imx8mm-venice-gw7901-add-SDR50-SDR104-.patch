@@ -1,0 +1,78 @@
+From 3ab15d0ab0db9397c42e78b1c58dcac120daa96a Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Wed, 17 Aug 2022 13:38:31 -0700
+Subject: [PATCH 15/24] 6.6: arm64: dts: imx8mm-venice-gw7901: add SDR50/SDR104
+ SDIO support for wifi
+
+The GW7901 has a Murata LBEE5H 802.11abgnac / BT5 module based on the
+Cypress CYW43455 which supports SDR50/SDR104.
+
+Add dt pinctrl for the 100mhz and 200mhz states to support SDR50/SDR104.
+
+While at it add the dt node for the CYW43455 wifi for the brcmfmac
+driver.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ .../dts/freescale/imx8mm-venice-gw7901.dts    | 33 ++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+index a33daa497117..ec16e8ade9d9 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+@@ -790,12 +790,21 @@ &usbotg2 {
+ 
+ /* SDIO WiFi */
+ &usdhc1 {
+-	pinctrl-names = "default";
++	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+ 	pinctrl-0 = <&pinctrl_usdhc1>;
++	pinctrl-1 = <&pinctrl_usdhc1_100mhz>;
++	pinctrl-2 = <&pinctrl_usdhc1_200mhz>;
+ 	bus-width = <4>;
+ 	non-removable;
+ 	vmmc-supply = <&reg_wifi>;
++	#address-cells = <1>;
++	#size-cells = <0>;
+ 	status = "okay";
++
++	wifi@0 {
++		compatible = "brcm,bcm43455-fmac";
++		reg = <0>;
++	};
+ };
+ 
+ /* microSD */
+@@ -1055,6 +1064,28 @@ MX8MM_IOMUXC_SD1_DATA3_USDHC1_DATA3	0x1d0
+ 		>;
+ 	};
+ 
++	pinctrl_usdhc1_100mhz: usdhc1-100mhzgrp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SD1_CLK_USDHC1_CLK		0x194
++			MX8MM_IOMUXC_SD1_CMD_USDHC1_CMD		0x1d4
++			MX8MM_IOMUXC_SD1_DATA0_USDHC1_DATA0	0x1d4
++			MX8MM_IOMUXC_SD1_DATA1_USDHC1_DATA1	0x1d4
++			MX8MM_IOMUXC_SD1_DATA2_USDHC1_DATA2	0x1d4
++			MX8MM_IOMUXC_SD1_DATA3_USDHC1_DATA3	0x1d4
++		>;
++	};
++
++	pinctrl_usdhc1_200mhz: usdhc1-200mhzgrp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SD1_CLK_USDHC1_CLK		0x196
++			MX8MM_IOMUXC_SD1_CMD_USDHC1_CMD		0x1d6
++			MX8MM_IOMUXC_SD1_DATA0_USDHC1_DATA0	0x1d6
++			MX8MM_IOMUXC_SD1_DATA1_USDHC1_DATA1	0x1d6
++			MX8MM_IOMUXC_SD1_DATA2_USDHC1_DATA2	0x1d6
++			MX8MM_IOMUXC_SD1_DATA3_USDHC1_DATA3	0x1d6
++		>;
++	};
++
+ 	pinctrl_usdhc2: usdhc2grp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_SD2_CLK_USDHC2_CLK		0x190
+-- 
+2.25.1
+

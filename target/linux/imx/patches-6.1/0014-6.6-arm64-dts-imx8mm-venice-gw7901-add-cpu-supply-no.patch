@@ -1,0 +1,52 @@
+From acaca568f8cbc6381fabb2dd3344738d17cd05f3 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Wed, 17 Aug 2022 13:37:38 -0700
+Subject: [PATCH 14/24] 6.6: arm64: dts: imx8mm-venice-gw7901: add cpu-supply
+ node for cpufreq
+
+Add regulator config for cpu-supply in order to support cpufreq.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ .../dts/freescale/imx8mm-venice-gw7901.dts     | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+index 3a910f6de364..a33daa497117 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7901.dts
+@@ -242,6 +242,22 @@ reg_wifi: regulator-wifi {
+ 	};
+ };
+ 
++&A53_0 {
++	cpu-supply = <&buck2>;
++};
++
++&A53_1 {
++	cpu-supply = <&buck2>;
++};
++
++&A53_2 {
++	cpu-supply = <&buck2>;
++};
++
++&A53_3 {
++	cpu-supply = <&buck2>;
++};
++
+ &ddrc {
+ 	operating-points-v2 = <&ddrc_opp_table>;
+ 
+@@ -511,7 +527,7 @@ BUCK1 {
+ 			};
+ 
+ 			/* vdd_arm: 0.805-1.0V (typ=0.9V) */
+-			BUCK2 {
++			buck2: BUCK2 {
+ 				regulator-name = "buck2";
+ 				regulator-min-microvolt = <700000>;
+ 				regulator-max-microvolt = <1300000>;
+-- 
+2.25.1
+

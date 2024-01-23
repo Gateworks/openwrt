@@ -1,0 +1,32 @@
+From a609eff64ab3fca10e95697101daa08c90faf77a Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Wed, 7 Jun 2023 08:36:02 -0700
+Subject: [PATCH 12/24] 6.5: arm64: dts: imx8mp-venice-gw702x: fix GSC vdd_bat
+ data size
+
+On this board, vdd_bat is 16bit, not 24bit. Set the mode to
+mode_voltage_16bit (3) instead of mode_voltage_24bit (1).
+
+Fixes: 0d5b288c2110 ("arm64: dts: freescale: Add imx8mp-venice-gw7905-2x")
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+Signed-off-by: Shawn Guo <shawnguo@kernel.org>
+---
+ arch/arm64/boot/dts/freescale/imx8mp-venice-gw702x.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-venice-gw702x.dtsi b/arch/arm64/boot/dts/freescale/imx8mp-venice-gw702x.dtsi
+index 74b0fda235ed..560c68e4da6d 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-venice-gw702x.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mp-venice-gw702x.dtsi
+@@ -138,7 +138,7 @@ channel@6 {
+ 			};
+ 
+ 			channel@8 {
+-				gw,mode = <1>;
++				gw,mode = <3>;
+ 				reg = <0x08>;
+ 				label = "vdd_bat";
+ 			};
+-- 
+2.25.1
+

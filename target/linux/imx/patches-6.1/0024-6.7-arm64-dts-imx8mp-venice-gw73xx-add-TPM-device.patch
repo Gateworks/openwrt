@@ -1,0 +1,44 @@
+From 06160e205cc92e4c15ebba07ad94d56c2ef91645 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 24 Aug 2023 11:07:48 -0700
+Subject: [PATCH 24/24] 6.7: arm64: dts: imx8mp-venice-gw73xx: add TPM device
+
+Add the TPM device found on the GW73xx revision F PCB.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ .../arm64/boot/dts/freescale/imx8mp-venice-gw73xx.dtsi | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mp-venice-gw73xx.dtsi b/arch/arm64/boot/dts/freescale/imx8mp-venice-gw73xx.dtsi
+index 25b288803487..f1f8d36192c0 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mp-venice-gw73xx.dtsi
++++ b/arch/arm64/boot/dts/freescale/imx8mp-venice-gw73xx.dtsi
+@@ -95,8 +95,15 @@ reg_usdhc2_vmmc: regulator-usdhc2-vmmc {
+ &ecspi2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_spi2>;
+-	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
++	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>,
++		   <&gpio1 10 GPIO_ACTIVE_LOW>;
+ 	status = "okay";
++
++	tpm@1 {
++		compatible = "tcg,tpm_tis-spi";
++		reg = <0x1>;
++		spi-max-frequency = <36000000>;
++	};
+ };
+ 
+ &gpio4 {
+@@ -335,6 +342,7 @@ MX8MP_IOMUXC_ECSPI2_SCLK__ECSPI2_SCLK	0x140
+ 			MX8MP_IOMUXC_ECSPI2_MOSI__ECSPI2_MOSI	0x140
+ 			MX8MP_IOMUXC_ECSPI2_MISO__ECSPI2_MISO	0x140
+ 			MX8MP_IOMUXC_ECSPI2_SS0__GPIO5_IO13	0x140
++			MX8MP_IOMUXC_GPIO1_IO10__GPIO1_IO10	0x140
+ 		>;
+ 	};
+ 
+-- 
+2.25.1
+

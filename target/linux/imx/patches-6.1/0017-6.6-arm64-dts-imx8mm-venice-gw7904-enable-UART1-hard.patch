@@ -1,0 +1,68 @@
+From 811ae80808f79b40f493c7662e129b1651fd6a6d Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 15 Sep 2022 14:11:18 -0700
+Subject: [PATCH 17/24] 6.6: arm64: dts: imx8mm-venice-gw7904: enable UART1
+ hardware flow control
+
+On the GW7904 uart1 can use UART3_TX/RX for hardware flow control
+which was the desired default configuration. Remove uart3 and configure
+uart1 for hardware flow control.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ .../dts/freescale/imx8mm-venice-gw7904.dts     | 18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7904.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7904.dts
+index a75df7f40e54..ffea06984e05 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7904.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7904.dts
+@@ -641,6 +641,8 @@ &pgc_mipi {
+ &uart1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_uart1>;
++	cts-gpios = <&gpio5 26 GPIO_ACTIVE_LOW>;
++	rts-gpios = <&gpio5 27 GPIO_ACTIVE_LOW>;
+ 	status = "okay";
+ };
+ 
+@@ -651,13 +653,6 @@ &uart2 {
+ 	status = "okay";
+ };
+ 
+-/* off-board RS232 */
+-&uart3 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_uart3>;
+-	status = "okay";
+-};
+-
+ &usbotg1 {
+ 	dr_mode = "host";
+ 	disable-over-current;
+@@ -819,6 +814,8 @@ pinctrl_uart1: uart1grp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_UART1_RXD_UART1_DCE_RX	0x140
+ 			MX8MM_IOMUXC_UART1_TXD_UART1_DCE_TX	0x140
++			MX8MM_IOMUXC_UART3_RXD_GPIO5_IO26	0x140 /* CTS# in */
++			MX8MM_IOMUXC_UART3_TXD_GPIO5_IO27	0x140 /* RTS# out */
+ 		>;
+ 	};
+ 
+@@ -829,13 +826,6 @@ MX8MM_IOMUXC_UART2_TXD_UART2_DCE_TX	0x140
+ 		>;
+ 	};
+ 
+-	pinctrl_uart3: uart3grp {
+-		fsl,pins = <
+-			MX8MM_IOMUXC_UART3_RXD_UART3_DCE_RX	0x140
+-			MX8MM_IOMUXC_UART3_TXD_UART3_DCE_TX	0x140
+-		>;
+-	};
+-
+ 	pinctrl_usdhc2: usdhc2grp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_SD2_CLK_USDHC2_CLK		0x190
+-- 
+2.25.1
+

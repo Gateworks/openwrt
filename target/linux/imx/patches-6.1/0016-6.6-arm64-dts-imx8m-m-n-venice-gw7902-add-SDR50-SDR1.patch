@@ -1,0 +1,134 @@
+From ad0d4f86d9569dccd164a35e0f381c34bab86c9c Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Wed, 17 Aug 2022 13:41:12 -0700
+Subject: [PATCH 16/24] 6.6: arm64: dts: imx8m{m,n}-venice-gw7902: add
+ SDR50/SDR104 SDIO support for wifi
+
+The GW7902 has a Murata LBEE5H 802.11abgnac / BT5 module based on the
+Cypress CYW43455 which supports SDR50/SDR104.
+
+Add dt pinctrl for the 100mhz and 200mhz states to support SDR50/SDR104.
+
+While at it add the dt node for the CYW43455 wifi.
+
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ .../dts/freescale/imx8mm-venice-gw7902.dts    | 33 ++++++++++++++++++-
+ .../dts/freescale/imx8mn-venice-gw7902.dts    | 33 ++++++++++++++++++-
+ 2 files changed, 64 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+index 36fcc617fad9..cadee69cf193 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mm-venice-gw7902.dts
+@@ -715,12 +715,21 @@ &usbotg2 {
+ 
+ /* SDIO WiFi */
+ &usdhc2 {
+-	pinctrl-names = "default";
++	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+ 	pinctrl-0 = <&pinctrl_usdhc2>;
++	pinctrl-1 = <&pinctrl_usdhc2_100mhz>;
++	pinctrl-2 = <&pinctrl_usdhc2_200mhz>;
+ 	bus-width = <4>;
+ 	non-removable;
+ 	vmmc-supply = <&reg_wifi>;
++	#address-cells = <1>;
++	#size-cells = <0>;
+ 	status = "okay";
++
++	wifi@0 {
++		compatible = "brcm,bcm43455-fmac";
++		reg = <0>;
++	};
+ };
+ 
+ /* eMMC */
+@@ -993,6 +1002,28 @@ MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d0
+ 		>;
+ 	};
+ 
++	pinctrl_usdhc2_100mhz: usdhc2-100mhzgrp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SD2_CLK_USDHC2_CLK		0x194
++			MX8MM_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d4
++			MX8MM_IOMUXC_SD2_DATA0_USDHC2_DATA0	0x1d4
++			MX8MM_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d4
++			MX8MM_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d4
++			MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d4
++		>;
++	};
++
++	pinctrl_usdhc2_200mhz: usdhc2-200mhzgrp {
++		fsl,pins = <
++			MX8MM_IOMUXC_SD2_CLK_USDHC2_CLK		0x196
++			MX8MM_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d6
++			MX8MM_IOMUXC_SD2_DATA0_USDHC2_DATA0	0x1d6
++			MX8MM_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d6
++			MX8MM_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d6
++			MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d6
++		>;
++	};
++
+ 	pinctrl_usdhc3: usdhc3grp {
+ 		fsl,pins = <
+ 			MX8MM_IOMUXC_NAND_WE_B_USDHC3_CLK	0x190
+diff --git a/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts b/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts
+index e1d22bc82e67..a42a88a9facd 100644
+--- a/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts
++++ b/arch/arm64/boot/dts/freescale/imx8mn-venice-gw7902.dts
+@@ -667,12 +667,21 @@ &usbotg1 {
+ 
+ /* SDIO WiFi */
+ &usdhc2 {
+-	pinctrl-names = "default";
++	pinctrl-names = "default", "state_100mhz", "state_200mhz";
+ 	pinctrl-0 = <&pinctrl_usdhc2>;
++	pinctrl-1 = <&pinctrl_usdhc2_100mhz>;
++	pinctrl-2 = <&pinctrl_usdhc2_200mhz>;
+ 	bus-width = <4>;
+ 	non-removable;
+ 	vmmc-supply = <&reg_wifi>;
++	#address-cells = <1>;
++	#size-cells = <0>;
+ 	status = "okay";
++
++	wifi@0 {
++		compatible = "brcm,bcm43455-fmac";
++		reg = <0>;
++	};
+ };
+ 
+ /* eMMC */
+@@ -923,6 +932,28 @@ MX8MN_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d0
+ 		>;
+ 	};
+ 
++	pinctrl_usdhc2_100mhz: usdhc2-100mhzgrp {
++		fsl,pins = <
++			MX8MN_IOMUXC_SD2_CLK_USDHC2_CLK		0x194
++			MX8MN_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d4
++			MX8MN_IOMUXC_SD2_DATA0_USDHC2_DATA0	0x1d4
++			MX8MN_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d4
++			MX8MN_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d4
++			MX8MN_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d4
++		>;
++	};
++
++	pinctrl_usdhc2_200mhz: usdhc2-200mhzgrp {
++		fsl,pins = <
++			MX8MN_IOMUXC_SD2_CLK_USDHC2_CLK		0x196
++			MX8MN_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d6
++			MX8MN_IOMUXC_SD2_DATA0_USDHC2_DATA0	0x1d6
++			MX8MN_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d6
++			MX8MN_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d6
++			MX8MN_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d6
++		>;
++	};
++
+ 	pinctrl_usdhc3: usdhc3grp {
+ 		fsl,pins = <
+ 			MX8MN_IOMUXC_NAND_WE_B_USDHC3_CLK	0x190
+-- 
+2.25.1
+
