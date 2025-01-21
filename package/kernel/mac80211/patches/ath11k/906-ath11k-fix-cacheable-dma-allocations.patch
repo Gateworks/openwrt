@@ -1,0 +1,78 @@
+From 045d776857232b6d76b1dc35f0947f7fc9d528d2 Mon Sep 17 00:00:00 2001
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 12 Dec 2024 11:58:07 -0800
+Subject: [PATCH] ath11k: fix cacheable dma allocations
+
+commit 6452f0a3d565 ("ath11k: allocate dst ring descriptors from
+cacheable memory") introduced allocating cachable memory
+for ring buffers on some devices however improperly used
+kzalloc/virt_to_phys for this. This was later fixed in commit
+aaf244141ed7 ("wifi: ath11k: fix IOMMU errors on buffer rings")
+but the solution uses dma_map_single() which is not recommended
+and will fail for large buffers on iommu-less systems where
+swiotlb needs to be used (systems with DMA addressing limitations).
+
+Resolve this by using the proper DMA API in this case
+dma_alloc_noncoherent.
+
+Before this patch ath11k on a 4GiB DRAM IMX8MM (no iommu and with a base
+DRAM address of 1GiB anything over 3GiB exceeds 32bit addressing) would
+fail with 'swiotlb buffer is full':
+ath11k_pci 0000:04:00.0: BAR 0 [mem 0x18200000-0x183fffff 64bit]: assigned
+ath11k_pci 0000:04:00.0: enabling device (0000 -> 0002)
+ath11k_pci 0000:04:00.0: MSI vectors: 16
+ath11k_pci 0000:04:00.0: qcn9074 hw1.0
+ath11k_pci 0000:04:00.0: chip_id 0x0 chip_family 0x0 board_id 0xff soc_id 0xffffffff
+ath11k_pci 0000:04:00.0: fw_version 0x270206d0 fw_build_timestamp 2022-08-04 12:48 fw_build_id WLAN.HK.2.7.0.1-01744-QCAHKSWPL_SILICONZ-1
+ath11k_pci 0000:04:00.0: swiotlb buffer is full (sz: 1048583 bytes), total 32768 (slots), used 2529 (slots)
+ath11k_pci 0000:04:00.0: failed to set up tcl_comp ring (0) :-12
+ath11k_pci 0000:04:00.0: failed to init DP: -12
+
+After this the same system allocates the ring buffers without issues.
+
+Fixes: aaf244141ed7 ("wifi: ath11k: fix IOMMU errors on buffer rings")
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ drivers/net/wireless/ath/ath11k/dp.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath11k/dp.c b/drivers/net/wireless/ath/ath11k/dp.c
+index d070bcb3fe24..1d1fb4673449 100644
+--- a/drivers/net/wireless/ath/ath11k/dp.c
++++ b/drivers/net/wireless/ath/ath11k/dp.c
+@@ -105,7 +105,8 @@ void ath11k_dp_srng_cleanup(struct ath11k_base *ab, struct dp_srng *ring)
+ 		return;
+ 
+ 	if (ring->cached)
+-		kfree(ring->vaddr_unaligned);
++		dma_free_noncoherent(ab->dev, ring->size, ring->vaddr_unaligned,
++				     ring->paddr_unaligned, DMA_FROM_DEVICE);
+ 	else
+ 		dma_free_coherent(ab->dev, ring->size, ring->vaddr_unaligned,
+ 				  ring->paddr_unaligned);
+@@ -246,17 +247,17 @@ int ath11k_dp_srng_setup(struct ath11k_base *ab, struct dp_srng *ring,
+ 		default:
+ 			cached = false;
+ 		}
+-
+-		if (cached) {
+-			ring->vaddr_unaligned = kzalloc(ring->size, GFP_KERNEL);
+-			ring->paddr_unaligned = virt_to_phys(ring->vaddr_unaligned);
+-		}
+ 	}
+ 
+ 	if (!cached)
+ 		ring->vaddr_unaligned = dma_alloc_coherent(ab->dev, ring->size,
+ 							   &ring->paddr_unaligned,
+ 							   GFP_KERNEL);
++	else
++		ring->vaddr_unaligned = dma_alloc_noncoherent(ab->dev, ring->size,
++							      &ring->paddr_unaligned,
++							      DMA_FROM_DEVICE,
++							      GFP_KERNEL);
+ 
+ 	if (!ring->vaddr_unaligned)
+ 		return -ENOMEM;
+-- 
+2.34.1
+
